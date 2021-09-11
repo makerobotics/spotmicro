@@ -5,7 +5,7 @@ import time
 import logging
 import configparser
 from threading import Thread
-#import Adafruit_PCA9685
+import Adafruit_PCA9685
 #import RPi.GPIO as GPIO
 
 def cls():
@@ -21,24 +21,23 @@ class Actuation():
     SET  = 2
     CTR  = 3
     RST  = 4
-    
+
     def __init__(self):
-        #self.pwm = Adafruit_PCA9685.PCA9685()
-        #self.pwm.set_pwm_freq(60)
+        self.pwm = Adafruit_PCA9685.PCA9685()
+        self.pwm.set_pwm_freq(60)
         self.readIni()
         self.mode = self.IDLE
-        self.actives = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.pwms =    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
+        self.actives = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.pwms =    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.min_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.max_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
     def readIni(self):
         logger.info("Read ini file")
         Config = configparser.ConfigParser()
         Config.read("config.ini")
-        #self.OFFSETS[self.LEFT] = Config.getint('motor', 'offset_left')
-        #self.OFFSETS[self.RIGHT] = Config.getint('motor', 'offset_right')
-        #self.OFFSETS[self.PAN] = Config.getint('motor', 'offset_pan')
-        #self.OFFSETS[self.TILT] = Config.getint('motor', 'offset_tilt')
-        #self.MIDDLE = Config.getint('motor', 'middle')
+        self.min_pwms[0] = Config.getint('channel_0', 'servo_min_pwm')
+        self.max_pwms[0] = Config.getint('channel_0', 'servo_max_pwm')
 
     def setMode(self, mode):
         if(mode == "q"):
@@ -56,8 +55,12 @@ class Actuation():
         index = 0
         for i in self.actives:
             if i == 1:
+                if pwm<self.min_pwms[index]:
+                    pwm = self.min_pwms[index]
+                elif pwm>self.max_pwms[index]:
+                    pwm = self.max_pwms[index]
                 self.pwms[index] = pwm
-                #self.pwm.set_pwm(index, 0, self.pwm)
+                self.pwm.set_pwm(index, 0, pwm)
             index += 1
 
     def selectServo(self, servo, active):
