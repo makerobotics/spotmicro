@@ -20,52 +20,28 @@ class Actuation():
     SET  = 2
     CTR  = 3
     RST  = 4
-    MOV  = 5
 
     def __init__(self):
         self.pwm = Adafruit_PCA9685.PCA9685()
         self.pwm.set_pwm_freq(60)
+        self.readIni()
         self.mode = self.IDLE
         self.actives = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.pwms =    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.min_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.max_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.readIni()
-        self.swipe = 0
-        self.swipe_sign = 1
-        self.MAX_SWIPE = 600
 
     def readIni(self):
         logger.info("Read ini file")
         Config = configparser.ConfigParser()
         Config.read("config.ini")
+        print(self.min_pwms)
+
         self.min_pwms[0] = Config.getint('channel_0', 'servo_min_pwm')
         self.max_pwms[0] = Config.getint('channel_0', 'servo_max_pwm')
-        self.min_pwms[1] = Config.getint('channel_1', 'servo_min_pwm')
-        self.max_pwms[1] = Config.getint('channel_1', 'servo_max_pwm')
-        self.min_pwms[2] = Config.getint('channel_2', 'servo_min_pwm')
-        self.max_pwms[2] = Config.getint('channel_2', 'servo_max_pwm')
-        self.min_pwms[3] = Config.getint('channel_3', 'servo_min_pwm')
-        self.max_pwms[3] = Config.getint('channel_3', 'servo_max_pwm')
-        self.min_pwms[4] = Config.getint('channel_4', 'servo_min_pwm')
-        self.max_pwms[4] = Config.getint('channel_4', 'servo_max_pwm')
-        self.min_pwms[5] = Config.getint('channel_5', 'servo_min_pwm')
-        self.max_pwms[5] = Config.getint('channel_5', 'servo_max_pwm')
-        self.min_pwms[6] = Config.getint('channel_6', 'servo_min_pwm')
-        self.max_pwms[6] = Config.getint('channel_6', 'servo_max_pwm')
-        self.min_pwms[7] = Config.getint('channel_7', 'servo_min_pwm')
-        self.max_pwms[7] = Config.getint('channel_7', 'servo_max_pwm')
-        self.min_pwms[8] = Config.getint('channel_8', 'servo_min_pwm')
-        self.max_pwms[8] = Config.getint('channel_8', 'servo_max_pwm')
-        self.min_pwms[9] = Config.getint('channel_9', 'servo_min_pwm')
-        self.max_pwms[9] = Config.getint('channel_9', 'servo_max_pwm')
-        self.min_pwms[10] = Config.getint('channel_10', 'servo_min_pwm')
-        self.max_pwms[10] = Config.getint('channel_10', 'servo_max_pwm')
-        self.min_pwms[11] = Config.getint('channel_11', 'servo_min_pwm')
-        self.max_pwms[11] = Config.getint('channel_11', 'servo_max_pwm')
 
     def setMode(self, mode):
-        if(mode == "b"):
+        if(mode == "q"):
             self.mode = self.QUIT
         elif(mode == "s"):
             self.mode = self.SET
@@ -73,8 +49,6 @@ class Actuation():
             self.mode = self.CTR
         elif(mode == "r"):
             self.mode = self.RST
-        elif(mode == "m"):
-            self.mode = self.MOV
         else:
             print("Unknown mode")
 
@@ -93,25 +67,11 @@ class Actuation():
     def selectServo(self, servo, active):
         self.actives[servo] = active
 
-    def swipeServo(self):
-        if self.swipe >= self.MAX_SWIPE:
-            self.swipe_sign = -1
-        if self.swipe <= 0:
-            self.swipe_sign = 1
-        self.swipe += self.swipe_sign
-        self.setServo(self.swipe)
-        print("swipe: "+str(self.swipe), end = "\r")
-        #self.printServos()
-
     def printServos(self):
         print("Actives: ")
         print(self.actives)
         print("PWMs: ")
         print(self.pwms)
-        print("\nMin PWMs: ")
-        print(self.min_pwms)
-        print("Max PWMs: ")
-        print(self.max_pwms)
         print("\n")
 
     def close(self):
@@ -132,10 +92,10 @@ if __name__ == '__main__':
         logger.info("Started main")
         a = Actuation()
         while a.mode != a.QUIT:
-            print("b: back (quit), s: select, r: reset, c: control")
+            print("q: quit, s: select, r: reset, c: control")
             mode = input("Set your choice: ")
             a.setMode(mode)
-            if mode == "b":
+            if mode == "q":
                 a.close()
                 break
             elif mode == "s":
@@ -143,8 +103,8 @@ if __name__ == '__main__':
                     cls()
                     print("\n*** select mode ***\n")
                     a.printServos()
-                    servo = input('Select servo channel (or "b" to go back): ')
-                    if servo == "b": break
+                    servo = input("Servo to select (or q to go back): ")
+                    if servo == "q": break
                     else:
                         try:
                             a.selectServo(int(servo), 1)
@@ -155,32 +115,25 @@ if __name__ == '__main__':
                     cls()
                     print("\n*** reset mode ***\n")
                     a.printServos()
-                    servo = input('Select servo channel (or "b" to go back): ')
-                    if servo == "b": break
+                    servo = input("Servo to select (or q to go back): ")
+                    if servo == "q": break
                     else:
                         try:
                             a.selectServo(int(servo), 0)
                         except:
-                            print("Wrong selection !!") # todo: show to user
+                            print("Wrong selection !!")
             elif mode == "c":
                 while a.mode == a.CTR:
                     cls()
                     print("\n*** control mode ***\n")
                     a.printServos()
-                    pwm = input('Select servo PWM (or "b" to go back): ')
-                    if pwm == "b": break
+                    pwm = input("Select servo PWM (or q to go back): ")
+                    if pwm == "q": break
                     else:
                         try:
                             a.setServo(int(pwm))
                         except:
                             print("Wrong selection !!")
-            elif mode == "m":
-                try:
-                    while True:
-                        a.swipeServo()
-                        time.sleep(0.01)
-                except KeyboardInterrupt:
-                    mode = "b"
     except KeyboardInterrupt:
         # Signal termination 
         logger.info("Keyboard interrupt. Terminate thread")
