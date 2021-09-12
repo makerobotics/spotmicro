@@ -30,6 +30,7 @@ class Actuation():
         self.pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.min_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.max_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.range_angles = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.readIni()
         self.swipe = 0
         self.swipe_sign = 1
@@ -41,35 +42,47 @@ class Actuation():
         Config.read("config.ini")
         self.min_pwms[0] = Config.getint('channel_0', 'servo_min_pwm')
         self.max_pwms[0] = Config.getint('channel_0', 'servo_max_pwm')
+        self.range_angles[0] = Config.getint('channel_0', 'servo_range_angle')
         self.min_pwms[1] = Config.getint('channel_1', 'servo_min_pwm')
         self.max_pwms[1] = Config.getint('channel_1', 'servo_max_pwm')
+        self.range_angles[1] = Config.getint('channel_1', 'servo_range_angle')
         self.min_pwms[2] = Config.getint('channel_2', 'servo_min_pwm')
         self.max_pwms[2] = Config.getint('channel_2', 'servo_max_pwm')
+        self.range_angles[2] = Config.getint('channel_2', 'servo_range_angle')
         self.min_pwms[3] = Config.getint('channel_3', 'servo_min_pwm')
         self.max_pwms[3] = Config.getint('channel_3', 'servo_max_pwm')
+        self.range_angles[3] = Config.getint('channel_3', 'servo_range_angle')
         self.min_pwms[4] = Config.getint('channel_4', 'servo_min_pwm')
         self.max_pwms[4] = Config.getint('channel_4', 'servo_max_pwm')
+        self.range_angles[4] = Config.getint('channel_4', 'servo_range_angle')
         self.min_pwms[5] = Config.getint('channel_5', 'servo_min_pwm')
         self.max_pwms[5] = Config.getint('channel_5', 'servo_max_pwm')
+        self.range_angles[5] = Config.getint('channel_5', 'servo_range_angle')
         self.min_pwms[6] = Config.getint('channel_6', 'servo_min_pwm')
         self.max_pwms[6] = Config.getint('channel_6', 'servo_max_pwm')
+        self.range_angles[6] = Config.getint('channel_6', 'servo_range_angle')
         self.min_pwms[7] = Config.getint('channel_7', 'servo_min_pwm')
         self.max_pwms[7] = Config.getint('channel_7', 'servo_max_pwm')
+        self.range_angles[7] = Config.getint('channel_7', 'servo_range_angle')
         self.min_pwms[8] = Config.getint('channel_8', 'servo_min_pwm')
         self.max_pwms[8] = Config.getint('channel_8', 'servo_max_pwm')
+        self.range_angles[8] = Config.getint('channel_8', 'servo_range_angle')
         self.min_pwms[9] = Config.getint('channel_9', 'servo_min_pwm')
         self.max_pwms[9] = Config.getint('channel_9', 'servo_max_pwm')
+        self.range_angles[9] = Config.getint('channel_9', 'servo_range_angle')
         self.min_pwms[10] = Config.getint('channel_10', 'servo_min_pwm')
         self.max_pwms[10] = Config.getint('channel_10', 'servo_max_pwm')
+        self.range_angles[10] = Config.getint('channel_10', 'servo_range_angle')
         self.min_pwms[11] = Config.getint('channel_11', 'servo_min_pwm')
         self.max_pwms[11] = Config.getint('channel_11', 'servo_max_pwm')
+        self.range_angles[11] = Config.getint('channel_11', 'servo_range_angle')
 
     def setMode(self, mode):
-        if(mode == "b"):
+        if(mode == "b" or mode == "q"):
             self.mode = self.QUIT
         elif(mode == "s"):
             self.mode = self.SET
-        elif(mode == "c"):
+        elif(mode == "c" or mode == "a"):
             self.mode = self.CTR
         elif(mode == "r"):
             self.mode = self.RST
@@ -78,16 +91,25 @@ class Actuation():
         else:
             print("Unknown mode")
 
-    def setServo(self, pwm):
+    def setServo(self, unit, pwm):
         index = 0
         for i in self.actives:
             if i == 1:
-                if pwm<self.min_pwms[index]:
-                    pwm = self.min_pwms[index]
-                elif pwm>self.max_pwms[index]:
-                    pwm = self.max_pwms[index]
-                self.pwms[index] = pwm
-                self.pwm.set_pwm(index, 0, pwm)
+                if unit == 0:
+                    if pwm<self.min_pwms[index]:
+                        pwm = self.min_pwms[index]
+                    elif pwm>self.max_pwms[index]:
+                        pwm = self.max_pwms[index]
+                    self.pwms[index] = pwm
+                    self.pwm.set_pwm(index, 0, pwm)
+                else:
+                    p = int(pwm*(self.max_pwms[index]-self.min_pwms[index])/self.range_angles[index]+self.min_pwms[index])
+                    if p<self.min_pwms[index]:
+                        p = self.min_pwms[index]
+                    elif p>self.max_pwms[index]:
+                        p = self.max_pwms[index]
+                    self.pwms[index] = p
+                    self.pwm.set_pwm(index, 0, p)
             index += 1
 
     def selectServo(self, servo, active):
@@ -132,7 +154,7 @@ if __name__ == '__main__':
         logger.info("Started main")
         a = Actuation()
         while a.mode != a.QUIT:
-            print("b: back (quit), s: select, r: reset, c: control")
+            print("b: back (quit), s: select, r: reset, c: control raw, a: control angle")
             mode = input("Set your choice: ")
             a.setMode(mode)
             if mode == "b":
@@ -165,13 +187,25 @@ if __name__ == '__main__':
             elif mode == "c":
                 while a.mode == a.CTR:
                     cls()
-                    print("\n*** control mode ***\n")
+                    print("\n*** control mode (raw PWM) ***\n")
                     a.printServos()
                     pwm = input('Select servo PWM (or "b" to go back): ')
                     if pwm == "b": break
                     else:
                         try:
-                            a.setServo(int(pwm))
+                            a.setServo(0, int(pwm))
+                        except:
+                            print("Wrong selection !!")
+            elif mode == "a":
+                while a.mode == a.CTR:
+                    cls()
+                    print("\n*** control mode (angle) ***\n")
+                    a.printServos()
+                    pwm = input('Select servo angle (or "b" to go back): ')
+                    if pwm == "b": break
+                    else:
+                        try:
+                            a.setServo(1, int(pwm))
                         except:
                             print("Wrong selection !!")
             elif mode == "m":
