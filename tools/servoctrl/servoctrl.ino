@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <EEPROM.h>
+#include "BluetoothSerial.h"
 
 #define BUILTINLED 2
 #define PIN_IN1 16
@@ -14,7 +15,7 @@
 #define BTN_UNPRESSED 0
 #define BTN_PRESSED   1
 #define BTN_DEBOUNCE  2
-#define STEP          5 // equals 10 as function is called twice per rotary actuation
+#define STEP          1 // function is called twice per rotary actuation
 #define SERVOMIN  50
 #define SERVOMAX  900
 #define MAX_SERVO_NUM 12
@@ -26,6 +27,7 @@
 // Setup a RotaryEncoder with 2 steps per latch for the 2 signal input pins:
 RotaryEncoder encoder(PIN_IN1, PIN_IN2, RotaryEncoder::LatchMode::TWO03);
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+BluetoothSerial SerialBT;
 
 int clicked = 0;
 int servoPos[MAX_SERVO_NUM] = {SERVOMIN};
@@ -146,6 +148,9 @@ void setup()
   pinMode(PIN_IN3, INPUT_PULLUP);
   pinMode(BUILTINLED, OUTPUT);
 
+  SerialBT.begin("ESP32test"); //Name des ESP32
+  Serial.println("Der ESP32 ist bereit. Verbinde dich nun über Bluetooth.");
+
   //Init EEPROM
   EEPROM.begin(EEPROM_SIZE);
   readEEPROM();
@@ -177,8 +182,9 @@ void loop()
 
     Serial.print(" Servo position: ");
     Serial.println(servoPos[servonum]);
-    pwm1.setPWM(servonum, 0, servoPos[servonum]);
-    
+    SerialBT.print(" Servo position: ");
+    SerialBT.println(servoPos[servonum]);
+    pwm1.setPWM(servonum, 0, servoPos[servonum]);   
   } // if
 
   int btnEvent = handlePushButton();
@@ -186,11 +192,14 @@ void loop()
     //Serial.println("Clicked");
     Serial.print(" Servo number: ");
     Serial.println(servonum);
+    SerialBT.print(" Servo number: ");
+    SerialBT.println(servonum);
     //initializeEEPROM();
     readEEPROM();
   }
   else if(btnEvent == 2){
     Serial.println(" Long press");
+    SerialBT.println("Long press");
     digitalWrite(BUILTINLED, HIGH);
     writeBoundary(servonum, servoPos[servonum]);
     delay(1500);
@@ -198,7 +207,8 @@ void loop()
     readEEPROM();
   }
   else if(btnEvent == 3){
-    Serial.println("Very Long press");
+    Serial.println("Very long press");
+    SerialBT.print("Very long press");
     digitalWrite(BUILTINLED, HIGH);
     resetBoundary(servonum);
     delay(3000);
