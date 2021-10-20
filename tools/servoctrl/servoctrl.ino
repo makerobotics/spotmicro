@@ -35,20 +35,27 @@ int servoPosMin[MAX_SERVO_NUM] = {SERVOMIN};
 int servoPosMax[MAX_SERVO_NUM] = {SERVOMAX};
 int servonum = 0;
 
+void log(char * text, int value){
+  Serial.print(text);
+  Serial.println(value);
+  SerialBT.print(text);
+  SerialBT.println(value);
+}
+
 void readEEPROM(){
   int eeAddress = 0;
   for(int i=0;i<MAX_SERVO_NUM;i++){
     EEPROM.get(eeAddress, servoPosMin[i]);
-    Serial.print("Adr: ");
+    /*Serial.print("Adr: ");
     Serial.print(eeAddress);
     Serial.print(", Val: ");
-    Serial.println(servoPosMin[i]);
+    Serial.println(servoPosMin[i]);*/
     eeAddress += sizeof(int);
     EEPROM.get(eeAddress, servoPosMax[i]);
-    Serial.print("Adr: ");
+    /*Serial.print("Adr: ");
     Serial.print(eeAddress);
     Serial.print(", Val: ");
-    Serial.println(servoPosMax[i]);
+    Serial.println(servoPosMax[i]);*/
     eeAddress += sizeof(int);
   }
 }
@@ -69,21 +76,15 @@ void initializeEEPROM(){
 void writeBoundary(int servonumber, int servoPosition){
   if(servoPosition > ((SERVOMAX-SERVOMIN)/2)){
     EEPROM.put(servonumber*sizeof(int)*2+sizeof(int), servoPosition);
-    Serial.print("Write servo position: ");
-    Serial.println(servoPosition);
-    Serial.print("On servo number: ");
-    Serial.println(servonumber);
-    Serial.print("At adress: ");
-    Serial.println(servonumber * sizeof(int) * 2 + sizeof(int));
+    log("Write servo position: ", servoPosition);
+    log("On servo number: ", servonumber);
+    log("At adress: ", servonumber * sizeof(int) * 2 + sizeof(int));
   }
   else {
     EEPROM.put(servonumber*sizeof(int)*2, servoPosition);
-    Serial.print("Write servo position: ");
-    Serial.println(servoPosition);
-    Serial.print("On servo number: ");
-    Serial.println(servonumber);
-    Serial.print("At adress: ");
-    Serial.println(servonumber * sizeof(int) * 2);
+    log("Write servo position: ", servoPosition);
+    log("On servo number: ", servonumber);
+    log("At adress: ", servonumber * sizeof(int) * 2);
   }
   delay(100);
   EEPROM.commit();
@@ -144,13 +145,11 @@ void setup()
 {
   Serial.begin(115200);
   while (! Serial);
-  Serial.println("SimplePollRotator example for the RotaryEncoder library.");
   pinMode(PIN_IN3, INPUT_PULLUP);
   pinMode(BUILTINLED, OUTPUT);
 
-  SerialBT.begin("ESP32test"); //Name des ESP32
-  Serial.println("Der ESP32 ist bereit. Verbinde dich nun über Bluetooth.");
-
+  SerialBT.begin("servotest"); // bluetooth device name
+  
   //Init EEPROM
   EEPROM.begin(EEPROM_SIZE);
   readEEPROM();
@@ -180,26 +179,19 @@ void loop()
     if(servoPos[servonum] < servoPosMin[servonum]) servoPos[servonum] = servoPosMin[servonum];
     if(servoPos[servonum] > servoPosMax[servonum]) servoPos[servonum] = servoPosMax[servonum];
 
-    Serial.print(" Servo position: ");
-    Serial.println(servoPos[servonum]);
-    SerialBT.print(" Servo position: ");
-    SerialBT.println(servoPos[servonum]);
+    log(" Servo position: ", servoPos[servonum]);
     pwm1.setPWM(servonum, 0, servoPos[servonum]);   
   } // if
 
   int btnEvent = handlePushButton();
   if (btnEvent == 1) {
     //Serial.println("Clicked");
-    Serial.print(" Servo number: ");
-    Serial.println(servonum);
-    SerialBT.print(" Servo number: ");
-    SerialBT.println(servonum);
+    log(" Servo number: ", servonum);
     //initializeEEPROM();
     readEEPROM();
   }
   else if(btnEvent == 2){
-    Serial.println(" Long press");
-    SerialBT.println("Long press");
+    log(" Long press", 0);
     digitalWrite(BUILTINLED, HIGH);
     writeBoundary(servonum, servoPos[servonum]);
     delay(1500);
@@ -207,8 +199,7 @@ void loop()
     readEEPROM();
   }
   else if(btnEvent == 3){
-    Serial.println("Very long press");
-    SerialBT.print("Very long press");
+    log("Very long press", 0);
     digitalWrite(BUILTINLED, HIGH);
     resetBoundary(servonum);
     delay(3000);
