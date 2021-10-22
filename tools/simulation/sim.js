@@ -60,7 +60,7 @@ leg.prototype.printData = function(){
 
 const c = document.getElementById("myCanvas");
 const factor = 5;
-const interval = 100;
+const interval = 20;
 const x_offset = 200, y_offset = 10;
 let FL_leg = new leg(20, 20, 0, 0);
 let a1 = 0, a2 = 0;
@@ -72,7 +72,7 @@ function init() {
    FL_leg.setTheta1(0);
    FL_leg.setTheta2(0);
 
-   setInterval(drawRobot, 1000);
+   setInterval(drawRobot, interval);
 };
 
 function move(){
@@ -89,8 +89,8 @@ function move(){
 function drawRobot() {
    var ctx = c.getContext("2d");
    ctx.clearRect(0, 0, c.width, c.height);
-   FL_leg.printData();
-   
+   //FL_leg.printData();
+
    ctx.beginPath();
    ctx.moveTo(x_offset, y_offset);
    ctx.lineTo(x_offset+FL_leg.getX1()*factor, y_offset+FL_leg.getY1()*factor);
