@@ -10,7 +10,7 @@ function leg(L1, L2, theta1, theta2){
    this.L2 = L2;
    this.theta1 = theta1;
    this.theta2 = theta2;
-};
+}
 
 // Move leg
 leg.prototype.setTheta1 = function(angle){
@@ -59,8 +59,12 @@ leg.prototype.printData = function(){
 };
 
 const c = document.getElementById("myCanvas");
+const factor = 5;
+const interval = 100;
+const x_offset = 200, y_offset = 10;
 let FL_leg = new leg(20, 20, 0, 0);
 let a1 = 0, a2 = 0;
+let dir = 1;
 
 function init() {
    console.log("Init");
@@ -69,23 +73,32 @@ function init() {
    FL_leg.setTheta2(0);
 
    setInterval(drawRobot, 1000);
-}
+};
 
 function move(){
-   a1 ++;
-   a2 ++;
+   // Simulate movement by using forward kinematics
+   a1 += dir;
+   a2 += dir;
+   if(a1 == 45) dir = -1;
+   else if(a1 == -45) dir = 1;
+
    FL_leg.setTheta1(a1*Math.PI/180);
    FL_leg.setTheta2(a2*Math.PI/180);
-}
+};
 
 function drawRobot() {
-   let ctx = c.getContext("2d");
+   var ctx = c.getContext("2d");
    ctx.clearRect(0, 0, c.width, c.height);
    FL_leg.printData();
-
-   ctx.moveTo(0, 0);
-   ctx.lineTo(FL_leg.getX1()*10, FL_leg.getY1()*10);
-   ctx.lineTo(FL_leg.getX2()*10, FL_leg.getY2()*10);
+   
+   ctx.beginPath();
+   ctx.moveTo(x_offset, y_offset);
+   ctx.lineTo(x_offset+FL_leg.getX1()*factor, y_offset+FL_leg.getY1()*factor);
+   ctx.lineTo(x_offset+FL_leg.getX2()*factor, y_offset+FL_leg.getY2()*factor);
    ctx.stroke();
+   ctx.fillStyle = "#FF0000";
+   ctx.fillRect(x_offset+FL_leg.getX1()*factor-1, y_offset+FL_leg.getY1()*factor-1, 3, 3);
+   ctx.fillRect(x_offset+FL_leg.getX2()*factor-1, y_offset+FL_leg.getY2()*factor-1, 3, 3);
+ 
    move();
-}
+};
