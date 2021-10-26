@@ -61,16 +61,16 @@ leg.prototype.getZ2 = function(){
 
 // Inverse kinematics
 leg.prototype.getTheta2 = function(){
-   console.log(this.X2, this.Y2);
+   //console.log(this.X2, this.Y2);
    this.theta2 = Math.acos((this.X2*this.X2+this.Y2*this.Y2-this.L1*this.L1-this.L2*this.L2)/(2*this.L1*this.L2));
-   console.log(this.theta2*180/Math.PI,this.theta2);
+   //console.log(this.theta2*180/Math.PI,this.theta2);
    return this.theta2;
 };
 
 leg.prototype.getTheta1 = function(){
    let b=this.L2*Math.sin(this.theta2);
    let c=this.L1+this.L2*Math.cos(this.theta2);
-   this.theta1 = Math.atan2(this.Y2, this.X2)-Math.atan2(b,c);
+   this.theta1 = Math.atan2(this.X2, this.Y2)-Math.atan2(b,c);
    return this.theta1;
 };
 
@@ -105,10 +105,13 @@ function init() {
 //   setInterval(loop, TIME_INTERVAL);
 
    // move_2: move FL leg to 4 points (IK) in a square
-   //setTimeout(loop_2, 1000);
+   setTimeout(loop_2, 1000);
+   a1 = 1;
    setInterval(function() {
       loop_2(a1);
    }, 1500)
+   //move_2(0, 20);
+   //drawRobot();
 };
 
 function loop(){
@@ -123,7 +126,7 @@ function loop_2(step){
    else if(step == 4) move_2(0, 35);
    drawRobot();
    a1++;
-   if(a1==5) a1 = 0;
+   if(a1==5) a1 = 1;
 }
 
 function move_1(){
@@ -157,10 +160,11 @@ function move_1(){
 function move_2(x, y){
    // test inverse kenematics
    FL_leg.setTarget(x, y);
-   FL_leg.getTheta1();
    FL_leg.getTheta2();
+   FL_leg.getTheta1();
    FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();
-   console.log(FL_leg.X1, FL_leg.Y1, FL_leg.Z1);
+   //console.log(FL_leg.X1, FL_leg.Y1, FL_leg.Z1);
+   FL_leg.printData();
 }
 
 function drawLeg(context, leg){
