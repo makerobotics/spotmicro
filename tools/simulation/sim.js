@@ -110,8 +110,6 @@ function init() {
    setInterval(function() {
       loop_2(a1);
    }, 1500)
-   //move_2(0, 20);
-   //drawRobot();
 };
 
 function loop(){
@@ -160,11 +158,10 @@ function move_1(){
 function move_2(x, y){
    // test inverse kenematics
    FL_leg.setTarget(x, y);
-   FL_leg.getTheta2();
+   FL_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
    FL_leg.getTheta1();
    FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();
-   //console.log(FL_leg.X1, FL_leg.Y1, FL_leg.Z1);
-   FL_leg.printData();
+   //FL_leg.printData();
 }
 
 function drawLeg(context, leg){
@@ -172,6 +169,7 @@ function drawLeg(context, leg){
    context.moveTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR, SIDE_OFFSET_Y);
    context.lineTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR);
    context.lineTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X2*DRAW_FACTOR, SIDE_OFFSET_Y+leg.Y2*DRAW_FACTOR);
+   console.log(leg.Y2*DRAW_FACTOR);
    context.stroke();
    context.fillStyle = "#FF0000";
    context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR-1, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
@@ -181,6 +179,7 @@ function drawLeg(context, leg){
    context.moveTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR, FRONT_OFFSET_Y);
    context.lineTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR);
    context.lineTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR);
+   console.log(leg.Y2*DRAW_FACTOR);
    context.stroke();
    context.fillStyle = "#0000FF";
    context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
