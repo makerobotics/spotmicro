@@ -105,7 +105,6 @@ function init() {
 //   setInterval(loop, TIME_INTERVAL);
 
    // move_2: move FL leg to 4 points (IK) in a square
-   setTimeout(loop_2, 1000);
    a1 = 1;
    setInterval(function() {
       loop_2(a1);
@@ -160,30 +159,49 @@ function move_2(x, y){
    FL_leg.setTarget(x, y);
    FL_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
    FL_leg.getTheta1();
-   FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();
-   //FL_leg.printData();
+   FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();FL_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   
+   FR_leg.setTarget(x, y);
+   FR_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
+   FR_leg.getTheta1();
+   FR_leg.getX1();FR_leg.getY1();FR_leg.getZ1();FR_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   
+   RL_leg.setTarget(x, y);
+   RL_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
+   RL_leg.getTheta1();
+   RL_leg.getX1();RL_leg.getY1();RL_leg.getZ1();RL_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   
+   RR_leg.setTarget(x, y);
+   RR_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
+   RR_leg.getTheta1();
+   RR_leg.getX1();RR_leg.getY1();RR_leg.getZ1();RR_leg.getZ2(); // Z mandatory to avoid NAN in calc
 }
 
 function drawLeg(context, leg){
+
+   // Side view
    context.beginPath();
    context.moveTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR, SIDE_OFFSET_Y);
    context.lineTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR);
    context.lineTo(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X2*DRAW_FACTOR, SIDE_OFFSET_Y+leg.Y2*DRAW_FACTOR);
-   console.log(leg.Y2*DRAW_FACTOR);
    context.stroke();
+   // Articulations
    context.fillStyle = "#FF0000";
    context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR-1, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
+   context.fillStyle = "#0000FF";
    context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X2*DRAW_FACTOR-1, SIDE_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);
 
+   // Front view
    context.beginPath();
    context.moveTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR, FRONT_OFFSET_Y);
    context.lineTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR);
    context.lineTo(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR);
-   console.log(leg.Y2*DRAW_FACTOR);
    context.stroke();
-   context.fillStyle = "#0000FF";
+   // Articulations
+   context.fillStyle = "#FF0000";
    context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
-   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);
+   context.fillStyle = "#0000FF";
+   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);   
 }
 
 function drawRobot() {
@@ -207,7 +225,15 @@ function drawRobot() {
    ctx.fillStyle = "red";
    ctx.fillText("Right view", 10, 50);
    ctx.fillText("Front view", 10, 200);
-   
+
+   // Write data
+   ctx.font = "10px Arial";
+   ctx.fillStyle = "black";
+   ctx.fillText("FL: ("+Math.ceil(FL_leg.X2)+", "+Math.ceil(FL_leg.Y2)+")", 10, 250);
+   ctx.fillText("RL: ("+Math.ceil(RL_leg.X2)+", "+Math.ceil(RL_leg.Y2)+")", 10, 260);
+   ctx.fillText("RL: ("+Math.ceil(FR_leg.X2)+", "+Math.ceil(FR_leg.Y2)+")", 10, 270);
+   ctx.fillText("RR: ("+Math.ceil(RR_leg.X2)+", "+Math.ceil(RR_leg.Y2)+")", 10, 280);
+
    // Draw legs
    drawLeg(ctx, FL_leg);
    drawLeg(ctx, RL_leg);
