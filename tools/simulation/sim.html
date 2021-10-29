@@ -9,6 +9,15 @@
     <div>
         <canvas id="myCanvas" width="400" height="300"></canvas>
     </div>
+    <div>
+        <label for="sims">Choose a simulation:</label>
+        <select id="sims" name="sims" onChange="combo(this)">
+        <option value=""></option>
+        <option value="swipe">swipe</option>
+        <option value="positions">positions</option>
+        <option value="bezier">bezier</option>
+        </select>
+    </div>
 </body>
 <script src='sim.js'></script>
 </html>
