@@ -121,7 +121,6 @@ function init() {
    console.log("Init");
    let md = document.getElementById("sims");
    md.value = "";
-   console.log(md.value);
 
    FL_leg.setTheta1(0);
    FL_leg.setTheta2(0);
@@ -142,12 +141,12 @@ function init() {
 function combo(thelist) {
    let idx = thelist.selectedIndex;
    mode = thelist.options[idx].innerHTML;
-   console.log("Selected: "+mode);
+   //console.log("Selected: "+mode);
    a1 = 1;
 }
 
 function loop(){
-   console.log("Selected: "+mode);
+   //console.log("Selected: "+mode);
    if(mode=="swipe") {
       loop_1();
    }
@@ -180,46 +179,34 @@ function move_1(){
 
    FL_leg.setTheta1(a1*Math.PI/180);
    FL_leg.setTheta2(a2*Math.PI/180);
-   FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();
-   FL_leg.getX2();FL_leg.getY2();FL_leg.getZ2();
+   FL_leg.calcForwardKinematics();
    
    RL_leg.setTheta1(a1*Math.PI/180);
    RL_leg.setTheta2(a2*Math.PI/180);
-   RL_leg.getX1();RL_leg.getY1();RL_leg.getZ1();
-   RL_leg.getX2();RL_leg.getY2();RL_leg.getZ2();
+   RL_leg.calcForwardKinematics();
    
    FR_leg.setTheta1(a1*Math.PI/180);
    FR_leg.setTheta2(a2*Math.PI/180);
-   FR_leg.getX1();FR_leg.getY1();FR_leg.getZ1();
-   FR_leg.getX2();FR_leg.getY2();FR_leg.getZ2();
+   FR_leg.calcForwardKinematics();
    
    RR_leg.setTheta1(a1*Math.PI/180);
    RR_leg.setTheta2(a2*Math.PI/180);
-   RR_leg.getX1();RR_leg.getY1();RR_leg.getZ1();
-   RR_leg.getX2();RR_leg.getY2();RR_leg.getZ2();
+   RR_leg.calcForwardKinematics();
 };
 
 function move_2(x, y){
    // test inverse kenematics
    FL_leg.setTarget(x, y);
-   FL_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
-   FL_leg.getTheta1();
-   FL_leg.getX1();FL_leg.getY1();FL_leg.getZ1();FL_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   FL_leg.calcInverseKinematics();
    
    FR_leg.setTarget(x, y);
-   FR_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
-   FR_leg.getTheta1();
-   FR_leg.getX1();FR_leg.getY1();FR_leg.getZ1();FR_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   FR_leg.calcInverseKinematics();
    
    RL_leg.setTarget(x, y);
-   RL_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
-   RL_leg.getTheta1();
-   RL_leg.getX1();RL_leg.getY1();RL_leg.getZ1();RL_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   RL_leg.calcInverseKinematics();
    
    RR_leg.setTarget(x, y);
-   RR_leg.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
-   RR_leg.getTheta1();
-   RR_leg.getX1();RR_leg.getY1();RR_leg.getZ1();RR_leg.getZ2(); // Z mandatory to avoid NAN in calc
+   RR_leg.calcInverseKinematics();
 }
 
 function drawLeg(context, leg){
