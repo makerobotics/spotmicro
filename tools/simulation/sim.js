@@ -74,7 +74,18 @@ leg.prototype.getTheta1 = function(){
    return this.theta1;
 };
 
-// Output
+leg.prototype.calcForwardKinematics = function(){
+   this.getX1();this.getY1();this.getZ1();
+   this.getX2();this.getY2();this.getZ2();
+}
+
+leg.prototype.calcInverseKinematics = function(){
+   this.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
+   this.getTheta1();
+   this.getX1();this.getY1();this.getZ1();this.getZ2(); // Z mandatory to avoid NAN in calc
+}
+
+// Debug output
 leg.prototype.printData = function(){
    console.log("theta1: "+Math.ceil(this.theta1*180/Math.PI)+", theta2: "+Math.ceil(this.theta2*180/Math.PI));
    console.log("X1: "+Math.ceil(this.X1)+", Y1: "+Math.ceil(this.Y1));
@@ -94,24 +105,58 @@ let FR_leg = new leg(LEG_LENGTH, LEG_LENGTH, 0, 0, LONG_LEG_DISTANCE, -LAT_LEG_D
 let RR_leg = new leg(LEG_LENGTH, LEG_LENGTH, 0, 0, -LONG_LEG_DISTANCE, -LAT_LEG_DISTANCE);
 let a1 = 0, a2 = 0;
 let dir = 1;
+let mode = "";
+
+/* http://www.independent-software.com/determining-coordinates-on-a-html-canvas-bezier-curve.html */
+function getBezierXY(t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) {
+   return {
+     x: Math.pow(1-t,3) * sx + 3 * t * Math.pow(1 - t, 2) * cp1x 
+       + 3 * t * t * (1 - t) * cp2x + t * t * t * ex,
+     y: Math.pow(1-t,3) * sy + 3 * t * Math.pow(1 - t, 2) * cp1y 
+       + 3 * t * t * (1 - t) * cp2y + t * t * t * ey
+   };
+ }
 
 function init() {
    console.log("Init");
+   let md = document.getElementById("sims");
+   md.value = "";
+   console.log(md.value);
 
    FL_leg.setTheta1(0);
    FL_leg.setTheta2(0);
 
    // move_1: move servo angles coninuously
-//   setInterval(loop, TIME_INTERVAL);
+//   setInterval(loop_1, TIME_INTERVAL);
 
    // move_2: move FL leg to 4 points (IK) in a square
-   a1 = 1;
+/*   a1 = 1;
    setInterval(function() {
       loop_2(a1);
-   }, 1500)
+   }, 1500)*/
+
+   setInterval(loop, 1000);
 };
 
+
+function combo(thelist) {
+   let idx = thelist.selectedIndex;
+   mode = thelist.options[idx].innerHTML;
+   console.log("Selected: "+mode);
+   a1 = 1;
+}
+
 function loop(){
+   console.log("Selected: "+mode);
+   if(mode=="swipe") {
+      loop_1();
+   }
+   else if(mode == "positions"){
+      loop_2(a1);
+   }
+}
+
+function loop_1(){
    move_1();
    drawRobot();
 }
@@ -204,6 +249,26 @@ function drawLeg(context, leg){
    context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);   
 }
 
+function drawGait(ctx, leg){
+   let sx, sy, c1x, c1y, c2x, c2y, ex, ey;
+   
+   sx = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR-10;
+   sy = SIDE_OFFSET_Y-10;
+   c1x = sx;
+   c1y = sx;
+   c2x = sx;
+   c2y = sx;
+   ex = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+10;
+   ey = SIDE_OFFSET_Y+10;
+   
+   ctx.beginPath();
+   ctx.moveTo(20, 20);
+   //ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
+   ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
+   getBezierXY(0.5, sx, sy, c1x, c1y, c2x, c2y, ex, ey);
+   ctx.stroke(); 
+}
+
 function drawRobot() {
    var ctx = c.getContext("2d");
    ctx.clearRect(0, 0, c.width, c.height);
@@ -233,6 +298,9 @@ function drawRobot() {
    ctx.fillText("RL: ("+Math.ceil(RL_leg.X2)+", "+Math.ceil(RL_leg.Y2)+")", 10, 260);
    ctx.fillText("RL: ("+Math.ceil(FR_leg.X2)+", "+Math.ceil(FR_leg.Y2)+")", 10, 270);
    ctx.fillText("RR: ("+Math.ceil(RR_leg.X2)+", "+Math.ceil(RR_leg.Y2)+")", 10, 280);
+
+   // Draw gait for each leg
+   drawGait(ctx, FL_leg);
 
    // Draw legs
    drawLeg(ctx, FL_leg);
