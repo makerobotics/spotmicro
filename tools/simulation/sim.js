@@ -74,6 +74,7 @@ leg.prototype.getTheta1 = function(){
    return this.theta1;
 };
 
+// High level API
 leg.prototype.calcForwardKinematics = function(){
    this.getX1();this.getY1();this.getZ1();
    this.getX2();this.getY2();this.getZ2();
@@ -119,47 +120,40 @@ function getBezierXY(t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) {
 
 function init() {
    console.log("Init");
+
    let md = document.getElementById("sims");
-   md.value = "";
+   md.value = "bezier";
+   mode = "bezier";
 
-   FL_leg.setTheta1(0);
-   FL_leg.setTheta2(0);
-
-   // move_1: move servo angles coninuously
-//   setInterval(loop_1, TIME_INTERVAL);
-
-   // move_2: move FL leg to 4 points (IK) in a square
-/*   a1 = 1;
-   setInterval(function() {
-      loop_2(a1);
-   }, 1500)*/
-
-   setInterval(loop, 1000);
+   setInterval(loop, 500);
 };
 
 
 function combo(thelist) {
    let idx = thelist.selectedIndex;
    mode = thelist.options[idx].innerHTML;
-   //console.log("Selected: "+mode);
    a1 = 1;
 }
 
 function loop(){
-   //console.log("Selected: "+mode);
    if(mode=="swipe") {
       loop_1();
    }
    else if(mode == "positions"){
       loop_2(a1);
    }
+   else if(mode == "bezier"){
+      loop_3(a1);
+   }
 }
 
+// Angle swipe loop (forward kinematic)
 function loop_1(){
    move_1();
    drawRobot();
 }
 
+// Position change (inverse kinematic)
 function loop_2(step){
    if(step == 1) move_2(0, 20);
    else if(step == 2) move_2(0, 25);
@@ -170,6 +164,15 @@ function loop_2(step){
    if(a1==5) a1 = 1;
 }
 
+// Bezier path (inverse kinematic)
+function loop_3(step){
+   move_3();
+   drawRobot();
+   a1++;
+   if(a1==10) a1 = 0;
+}
+
+// Swipe both theta angles
 function move_1(){
    // Simulate movement by using forward kinematics
    a1 += dir;
@@ -194,6 +197,7 @@ function move_1(){
    RR_leg.calcForwardKinematics();
 };
 
+// set different positions with inverse kinematics
 function move_2(x, y){
    // test inverse kenematics
    FL_leg.setTarget(x, y);
@@ -207,6 +211,11 @@ function move_2(x, y){
    
    RR_leg.setTarget(x, y);
    RR_leg.calcInverseKinematics();
+}
+
+function move_3(){
+   move_2(0, 20);
+   //console.log(a1);
 }
 
 function drawLeg(context, leg){
@@ -240,20 +249,32 @@ function drawGait(ctx, leg){
    let sx, sy, c1x, c1y, c2x, c2y, ex, ey;
    
    sx = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR-10;
-   sy = SIDE_OFFSET_Y-10;
+   sy = SIDE_OFFSET_Y+leg.getY2()*DRAW_FACTOR;
    c1x = sx;
-   c1y = sx;
-   c2x = sx;
-   c2y = sx;
+   c1y = sy+15;
    ex = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+10;
-   ey = SIDE_OFFSET_Y+10;
+   ey = SIDE_OFFSET_Y+leg.getY2()*DRAW_FACTOR;
+   c2x = ex;
+   c2y = ey+15;
    
    ctx.beginPath();
-   ctx.moveTo(20, 20);
-   //ctx.bezierCurveTo(20, 100, 200, 100, 200, 20);
+   ctx.moveTo(sx, sy);
    ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
+   ctx.stroke();
+   ctx.beginPath();
+   ctx.moveTo(sx, sy);
+   ctx.bezierCurveTo(c1x, c1y-30, c2x, c2y-30, ex, ey);
+   ctx.stroke();
+
+   ctx.fillStyle = "#FF0000";
+   ctx.fillRect(sx-2, sy-2, 5, 5);
+   ctx.fillStyle = "#00FF00";
+   ctx.fillRect(ex-2, ey-2, 5, 5);
+   ctx.fillStyle = "#0000FF";
+   ctx.fillRect(c1x-2, c1y-2, 5, 5);
+   ctx.fillRect(c2x-2, c2y-2, 5, 5);
+
    getBezierXY(0.5, sx, sy, c1x, c1y, c2x, c2y, ex, ey);
-   ctx.stroke(); 
 }
 
 function drawRobot() {
@@ -286,8 +307,10 @@ function drawRobot() {
    ctx.fillText("RL: ("+Math.ceil(FR_leg.X2)+", "+Math.ceil(FR_leg.Y2)+")", 10, 270);
    ctx.fillText("RR: ("+Math.ceil(RR_leg.X2)+", "+Math.ceil(RR_leg.Y2)+")", 10, 280);
 
-   // Draw gait for each leg
-   drawGait(ctx, FL_leg);
+   if(mode=="bezier"){
+      // Draw gait for each leg
+      drawGait(ctx, FL_leg);
+   }
 
    // Draw legs
    drawLeg(ctx, FL_leg);
