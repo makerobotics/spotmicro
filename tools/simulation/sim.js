@@ -1,10 +1,16 @@
+const SX = 10;
+const SY = 25;
+const EX = 0;
+const EY = 25;
+const REFRESH = 100;
+
+
 /* Medium point coordinates: (X1, Y1)
    End point coordinates:    (X2, Y2)
    Top leg length:           L1
    Bottom leg length:        L2 
    Top leg angle:            theta1
    Bottom leg angle:         theta2 */
-   
 function leg(L1, L2, theta1, theta2, longPos, latPos){
    this.L1 = L1;
    this.L2 = L2;
@@ -12,6 +18,17 @@ function leg(L1, L2, theta1, theta2, longPos, latPos){
    this.theta2 = theta2;
    this.longPos = longPos;
    this.latPos = latPos;
+   this.direction = 1;
+
+   // recalculate bezier curve
+   this.sx = SX;
+   this.sy = SY;
+   this.c1x = this.sx;
+   this.c1y = this.sy+5*this.direction;
+   this.ex = EX;
+   this.ey = EY;
+   this.c2x = this.ex;
+   this.c2y = this.ey+5*this.direction;
 }
 
 // Move leg
@@ -26,6 +43,25 @@ leg.prototype.setTheta2 = function(angle){
 leg.prototype.setTarget = function(x, y){
    this.X2 = x;
    this.Y2 = y;
+}
+
+leg.prototype.setPath = function(t){
+   let vals = this.getBezierXY(t);
+   this.X2 = vals.x;
+   this.Y2 = vals.y;
+}
+
+leg.prototype.reversePath = function(t){
+   this.direction = -this.direction;
+   // recalculate bezier curve
+   this.sx = SX;
+   this.sy = SY;
+   this.c1x = this.sx;
+   this.c1y = this.sy+5*this.direction;
+   this.ex = EX;
+   this.ey = EY;
+   this.c2x = this.ex;
+   this.c2y = this.ey+5*this.direction;
 }
 
 // Forward kinematics
@@ -61,9 +97,7 @@ leg.prototype.getZ2 = function(){
 
 // Inverse kinematics
 leg.prototype.getTheta2 = function(){
-   //console.log(this.X2, this.Y2);
    this.theta2 = Math.acos((this.X2*this.X2+this.Y2*this.Y2-this.L1*this.L1-this.L2*this.L2)/(2*this.L1*this.L2));
-   //console.log(this.theta2*180/Math.PI,this.theta2);
    return this.theta2;
 };
 
@@ -86,6 +120,16 @@ leg.prototype.calcInverseKinematics = function(){
    this.getX1();this.getY1();this.getZ1();this.getZ2(); // Z mandatory to avoid NAN in calc
 }
 
+/* http://www.independent-software.com/determining-coordinates-on-a-html-canvas-bezier-curve.html */
+leg.prototype.getBezierXY = function(t) {
+   return {
+     x: Math.pow(1-t,3) * this.sx + 3 * t * Math.pow(1 - t, 2) * this.c1x 
+       + 3 * t * t * (1 - t) * this.c2x + t * t * t * this.ex,
+     y: Math.pow(1-t,3) * this.sy + 3 * t * Math.pow(1 - t, 2) * this.c1y 
+       + 3 * t * t * (1 - t) * this.c2y + t * t * t * this.ey
+   }
+}   
+
 // Debug output
 leg.prototype.printData = function(){
    console.log("theta1: "+Math.ceil(this.theta1*180/Math.PI)+", theta2: "+Math.ceil(this.theta2*180/Math.PI));
@@ -95,7 +139,6 @@ leg.prototype.printData = function(){
 
 const c = document.getElementById("myCanvas");
 const DRAW_FACTOR = 2;
-const TIME_INTERVAL = 20;
 const LEG_LENGTH = 20;
 const SIDE_OFFSET_X = 200, SIDE_OFFSET_Y = 10;
 const FRONT_OFFSET_X = 200, FRONT_OFFSET_Y = 150;
@@ -108,16 +151,6 @@ let a1 = 0, a2 = 0;
 let dir = 1;
 let mode = "";
 
-/* http://www.independent-software.com/determining-coordinates-on-a-html-canvas-bezier-curve.html */
-function getBezierXY(t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) {
-   return {
-     x: Math.pow(1-t,3) * sx + 3 * t * Math.pow(1 - t, 2) * cp1x 
-       + 3 * t * t * (1 - t) * cp2x + t * t * t * ex,
-     y: Math.pow(1-t,3) * sy + 3 * t * Math.pow(1 - t, 2) * cp1y 
-       + 3 * t * t * (1 - t) * cp2y + t * t * t * ey
-   };
- }
-
 function init() {
    console.log("Init");
 
@@ -125,7 +158,7 @@ function init() {
    md.value = "bezier";
    mode = "bezier";
 
-   setInterval(loop, 500);
+   setInterval(loop, REFRESH);
 };
 
 
@@ -168,8 +201,14 @@ function loop_2(step){
 function loop_3(step){
    move_3();
    drawRobot();
-   a1++;
-   if(a1==10) a1 = 0;
+   a1+=dir;
+   if((a1 == 10) || (a1 == 0)){
+      dir = -dir;
+      FL_leg.reversePath();
+      FR_leg.reversePath();
+      RL_leg.reversePath();
+      RR_leg.reversePath();
+   }
 }
 
 // Swipe both theta angles
@@ -214,11 +253,20 @@ function move_2(x, y){
 }
 
 function move_3(){
-   move_2(0, 20);
-   //console.log(a1);
+   FL_leg.setPath(a1/10);
+   FL_leg.calcInverseKinematics();
+   FR_leg.setPath(a1/10);
+   FR_leg.calcInverseKinematics();
+   RL_leg.setPath(a1/10);
+   RL_leg.calcInverseKinematics();
+   RR_leg.setPath(a1/10);
+   RR_leg.calcInverseKinematics();
 }
 
 function drawLeg(context, leg){
+
+   context.lineWidth = 1;
+   context.strokeStyle = "#000000";
 
    // Side view
    context.beginPath();
@@ -228,9 +276,9 @@ function drawLeg(context, leg){
    context.stroke();
    // Articulations
    context.fillStyle = "#FF0000";
-   context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR-1, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
+   context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X1*DRAW_FACTOR-2, SIDE_OFFSET_Y+leg.Y1*DRAW_FACTOR-2, 5, 5);
    context.fillStyle = "#0000FF";
-   context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X2*DRAW_FACTOR-1, SIDE_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);
+   context.fillRect(SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+leg.X2*DRAW_FACTOR-2, SIDE_OFFSET_Y+leg.Y2*DRAW_FACTOR-2, 5, 5);
 
    // Front view
    context.beginPath();
@@ -240,46 +288,43 @@ function drawLeg(context, leg){
    context.stroke();
    // Articulations
    context.fillStyle = "#FF0000";
-   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR-1, 3, 3);
+   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z1*DRAW_FACTOR-2, FRONT_OFFSET_Y+leg.Y1*DRAW_FACTOR-2, 5, 5);
    context.fillStyle = "#0000FF";
-   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR-1, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR-1, 3, 3);   
+   context.fillRect(FRONT_OFFSET_X+leg.latPos*DRAW_FACTOR+leg.Z2*DRAW_FACTOR-2, FRONT_OFFSET_Y+leg.Y2*DRAW_FACTOR-2, 5, 5);   
 }
 
 function drawGait(ctx, leg){
-   let sx, sy, c1x, c1y, c2x, c2y, ex, ey;
-   
-   sx = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR-10;
-   sy = SIDE_OFFSET_Y+leg.getY2()*DRAW_FACTOR;
-   c1x = sx;
-   c1y = sy+15;
-   ex = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR+10;
-   ey = SIDE_OFFSET_Y+leg.getY2()*DRAW_FACTOR;
-   c2x = ex;
-   c2y = ey+15;
-   
-   ctx.beginPath();
-   ctx.moveTo(sx, sy);
-   ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
-   ctx.stroke();
-   ctx.beginPath();
-   ctx.moveTo(sx, sy);
-   ctx.bezierCurveTo(c1x, c1y-30, c2x, c2y-30, ex, ey);
-   ctx.stroke();
+   let dx = SIDE_OFFSET_X+leg.longPos*DRAW_FACTOR;
+   let dy = SIDE_OFFSET_Y;
 
-   ctx.fillStyle = "#FF0000";
-   ctx.fillRect(sx-2, sy-2, 5, 5);
-   ctx.fillStyle = "#00FF00";
-   ctx.fillRect(ex-2, ey-2, 5, 5);
+   ctx.strokeStyle = "#888888";
+   //ctx.setLineDash([5, 15]);
+   ctx.lineWidth = 1;
+   
+   ctx.beginPath();
+   ctx.moveTo(dx+leg.sx*DRAW_FACTOR, dy+leg.sy*DRAW_FACTOR);
+   ctx.bezierCurveTo(dx+leg.c1x*DRAW_FACTOR, dy+leg.c1y*DRAW_FACTOR, dx+leg.c2x*DRAW_FACTOR, dy+leg.c2y*DRAW_FACTOR, dx+leg.ex*DRAW_FACTOR, dy+leg.ey*DRAW_FACTOR);
+   ctx.stroke();
+   ctx.beginPath();
+   ctx.moveTo(dx+leg.sx*DRAW_FACTOR, dy+leg.sy*DRAW_FACTOR);
+   ctx.bezierCurveTo(dx+leg.c1x*DRAW_FACTOR, dy+leg.c1y*DRAW_FACTOR, dx+leg.c2x*DRAW_FACTOR, dy+leg.c2y*DRAW_FACTOR, dx+leg.ex*DRAW_FACTOR, dy+leg.ey*DRAW_FACTOR);
+   ctx.stroke();
+   
+   ctx.fillStyle = "#888888";
+   ctx.fillRect(dx+leg.sx*DRAW_FACTOR-2, dy+leg.sy*DRAW_FACTOR-2, 5, 5);
+   ctx.fillStyle = "#888888";
+   ctx.fillRect(dx+leg.ex*DRAW_FACTOR-2, dy+leg.ey*DRAW_FACTOR-2, 5, 5);
    ctx.fillStyle = "#0000FF";
-   ctx.fillRect(c1x-2, c1y-2, 5, 5);
-   ctx.fillRect(c2x-2, c2y-2, 5, 5);
-
-   getBezierXY(0.5, sx, sy, c1x, c1y, c2x, c2y, ex, ey);
+   ctx.fillRect(dx+leg.c1x*DRAW_FACTOR-1, dy+leg.c1y*DRAW_FACTOR-1, 3, 3);
+   ctx.fillRect(dx+leg.c2x*DRAW_FACTOR-1, dy+leg.c2y*DRAW_FACTOR-1, 3, 3);
 }
 
 function drawRobot() {
    var ctx = c.getContext("2d");
    ctx.clearRect(0, 0, c.width, c.height);
+
+   ctx.strokeStyle = "#000000";
+   ctx.lineWidth = 5;
 
    // Draw right side view chassis
    ctx.beginPath();
@@ -310,6 +355,9 @@ function drawRobot() {
    if(mode=="bezier"){
       // Draw gait for each leg
       drawGait(ctx, FL_leg);
+      drawGait(ctx, RL_leg);
+      drawGait(ctx, FR_leg);
+      drawGait(ctx, RR_leg);
    }
 
    // Draw legs
