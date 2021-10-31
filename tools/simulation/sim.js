@@ -188,13 +188,10 @@ function loop_1(){
 
 // Position change (inverse kinematic)
 function loop_2(step){
-   if(step == 1) move_2(0, 20);
-   else if(step == 2) move_2(0, 25);
-   else if(step == 3) move_2(0, 30);
-   else if(step == 4) move_2(0, 35);
+   move_2(0, step);
    drawRobot();
-   a1++;
-   if(a1==5) a1 = 1;
+   a1+=dir;
+   if((a1==30) || (a1==0)) dir = -dir;
 }
 
 // Bezier path (inverse kinematic)
