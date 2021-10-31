@@ -348,6 +348,11 @@ function drawRobot() {
    ctx.fillText("RL: ("+Math.ceil(RL_leg.X2)+", "+Math.ceil(RL_leg.Y2)+")", 10, 260);
    ctx.fillText("RL: ("+Math.ceil(FR_leg.X2)+", "+Math.ceil(FR_leg.Y2)+")", 10, 270);
    ctx.fillText("RR: ("+Math.ceil(RR_leg.X2)+", "+Math.ceil(RR_leg.Y2)+")", 10, 280);
+   
+   ctx.fillText("ThetaFL1: "+Math.ceil(FL_leg.theta1*180/Math.PI), 100, 250);
+   ctx.fillText("ThetaFL2: "+Math.ceil(RL_leg.theta2*180/Math.PI), 100, 260);
+   //ctx.fillText("RL: ("+Math.ceil(FR_leg.X2)+", "+Math.ceil(FR_leg.Y2)+")", 10, 270);
+   //ctx.fillText("RR: ("+Math.ceil(RR_leg.X2)+", "+Math.ceil(RR_leg.Y2)+")", 10, 280);
 
    if(mode=="bezier"){
       // Draw gait for each leg
