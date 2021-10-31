@@ -34,7 +34,7 @@ class Actuation():
         self.readIni()
         self.swipe = 0
         self.swipe_sign = 1
-        self.MAX_SWIPE = 600
+        self.MAX_SWIPE = 200 # max swipe angle
 
     def readIni(self):
         logger.info("Read ini file")
@@ -88,6 +88,8 @@ class Actuation():
             self.mode = self.RST
         elif(mode == "m"):
             self.mode = self.MOV
+        elif(mode == "i"):
+            self.mode = self.IDLE
         else:
             print("Unknown mode")
 
@@ -118,11 +120,13 @@ class Actuation():
     def swipeServo(self):
         if self.swipe >= self.MAX_SWIPE:
             self.swipe_sign = -1
+            time.sleep(1)
         if self.swipe <= 0:
             self.swipe_sign = 1
+            time.sleep(1)
         self.swipe += self.swipe_sign
-        self.setServo(self.swipe)
-        print("swipe: "+str(self.swipe), end = "\r")
+        self.setServo(1, self.swipe)
+        print("swipe: "+str(self.swipe)+"  ", end = "\r")
         #self.printServos()
 
     def printServos(self):
@@ -154,10 +158,10 @@ if __name__ == '__main__':
         logger.info("Started main")
         a = Actuation()
         while a.mode != a.QUIT:
-            print("b: back (quit), s: select, r: reset, c: control raw, a: control angle")
+            print("b: back (quit), s: select, r: reset, c: control raw, a: control angle, m: swipe")
             mode = input("Set your choice: ")
             a.setMode(mode)
-            if mode == "b":
+            if mode == "b" or mode == "q":
                 a.close()
                 break
             elif mode == "s":
@@ -165,11 +169,13 @@ if __name__ == '__main__':
                     cls()
                     print("\n*** select mode ***\n")
                     a.printServos()
-                    servo = input('Select servo channel (or "b" to go back): ')
-                    if servo == "b": break
+                    servo = input('Select servo channel to be set (or "b" to go back): ')
+                    if servo == "b" or servo == "q": break
                     else:
                         try:
                             a.selectServo(int(servo), 1)
+                            cls()
+                            a.setMode("i")
                         except:
                             print("Wrong selection !!")
             elif mode == "r":
@@ -177,11 +183,12 @@ if __name__ == '__main__':
                     cls()
                     print("\n*** reset mode ***\n")
                     a.printServos()
-                    servo = input('Select servo channel (or "b" to go back): ')
-                    if servo == "b": break
+                    servo = input('Select servo channel to be reset (or "b" to go back): ')
+                    if servo == "b" or servo == "q": break
                     else:
                         try:
                             a.selectServo(int(servo), 0)
+                            a.setMode("i")
                         except:
                             print("Wrong selection !!") # todo: show to user
             elif mode == "c":
@@ -190,7 +197,7 @@ if __name__ == '__main__':
                     print("\n*** control mode (raw PWM) ***\n")
                     a.printServos()
                     pwm = input('Select servo PWM (or "b" to go back): ')
-                    if pwm == "b": break
+                    if pwm == "b" or pwm == "q": break
                     else:
                         try:
                             a.setServo(0, int(pwm))
@@ -202,7 +209,7 @@ if __name__ == '__main__':
                     print("\n*** control mode (angle) ***\n")
                     a.printServos()
                     pwm = input('Select servo angle (or "b" to go back): ')
-                    if pwm == "b": break
+                    if pwm == "b" or pwm == "q": break
                     else:
                         try:
                             a.setServo(1, int(pwm))
