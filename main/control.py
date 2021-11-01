@@ -69,7 +69,7 @@ class control(Thread):
         if(data[0] == "SERVO"):
             self.pwm.set_pwm(channel, 0, pwm)
         elif(data[0] == "RESET"):
-            for(ch in Range(12)):
+            for ch in Range(12):
                 self.pwm.set_pwm(ch, 0, 0)
 
     def run(self):
