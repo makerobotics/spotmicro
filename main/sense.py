@@ -90,7 +90,7 @@ class sense(Thread):
         self._running = False
 
     def idleTask(self):
-        print(os.system(vcgencmd measure_temp))
+        #print(os.system(vcgencmd measure_temp))
         pass
 
     def run(self):
