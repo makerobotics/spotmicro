@@ -67,7 +67,7 @@ class control(Thread):
         logger.info("Control thread received command: " + cmd)
         data = cmd.split(';')
         if(data[0] == "SERVO"):
-            self.pwm.set_pwm(channel, 0, pwm)
+            self.pwm.set_pwm(int(data[1]), 0, int(data[2]))
         elif(data[0] == "RESET"):
             for ch in Range(12):
                 self.pwm.set_pwm(ch, 0, 0)
