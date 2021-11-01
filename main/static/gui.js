@@ -37,7 +37,7 @@ function handleVideoCheckboxClick(cb) {
          ws.send(document.getElementById('input').value);
      }
      log('Tx: '+document.getElementById('input').value);
-     document.getElementById('input').value = '';
+     //document.getElementById('input').value = '';
  }
 
  function exit() {
