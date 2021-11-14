@@ -4,7 +4,7 @@ import os
 import time
 import logging
 import json
-ADAFRUIT = 0
+ADAFRUIT = 1
 if ADAFRUIT:
     import Adafruit_PCA9685 # for PC simulation
 
