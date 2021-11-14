@@ -31,7 +31,6 @@ class Servos():
         data = json.load(f)
         # Closing file
         f.close()
-        #print(data["FL"]["rolling"]["min_pwm"])
         return data
 
     def getChannel(self, leg, joint):
@@ -48,7 +47,7 @@ class Servos():
 
     def setServoAngle(self, leg, joint, angle):
         # angle
-        pwm = int(angle*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
+        pwm = int((angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"])*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
         if pwm < self.sc[leg][joint]["min_pwm"]:
             pwm = self.sc[leg][joint]["min_pwm"]
         elif pwm > self.sc[leg][joint]["max_pwm"]:
@@ -120,7 +119,6 @@ class Actuation():
         self.swipe += self.swipe_sign
         self.setServo(1, self.swipe)
         print("swipe: "+str(self.swipe)+"  ", end = "\r")
-        #self.printServos()
 
     def getJoint(self, joint):
         if joint == "k":
@@ -145,13 +143,14 @@ if __name__ == '__main__':
     ch.setFormatter(formatter)
     # add the handlers to the logger
     logger.addHandler(ch)
-    cls()
+    #cls()
     try:
         logger.info("Started main")
         a = Actuation()
         while a.mode != a.QUIT:
+            cls()
             print(message)
-            print("\n*** select mode ***\n")
+            print("\n*** Main mode ***\n")
             a.printServos()
             print("b: back (quit), s: select, r: reset, c: control raw, a: control angle, m: swipe")
             mode = input("Set your choice: ")
