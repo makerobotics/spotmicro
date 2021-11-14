@@ -86,11 +86,11 @@ class Actuation():
             print("Max PWM: "+str(self.servos.sc[self.leg][self.joint]["max_pwm"]))
         except:
             pass    
-            print("\nPWMs: ")
-            print(self.servos.pwms)
-            print("Angles: ")
-            print(self.servos.angles)
-            print("\n")
+        print("\nPWMs: ")
+        print(self.servos.pwms)
+        print("Angles: ")
+        print(self.servos.angles)
+        print("\n")
         
 
     def setMode(self, mode):
