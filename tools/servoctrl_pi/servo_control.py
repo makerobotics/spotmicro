@@ -204,10 +204,12 @@ if __name__ == '__main__':
                         except:
                             print("Wrong selection !!")
             elif mode == "a":
+                pwm = 0
                 while a.mode == a.CTR:
                     cls()
                     print("\n*** control mode (angle) ***\n")
                     a.printServos()
+                    print("Last angle: "+pwm+"°")
                     pwm = input('Select servo angle (or "b" to go back): ')
                     if pwm == "b" or pwm == "q": break
                     else:
