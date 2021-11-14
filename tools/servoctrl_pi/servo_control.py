@@ -150,8 +150,8 @@ if __name__ == '__main__':
         a = Actuation()
         while a.mode != a.QUIT:
             print(message)
-                print("\n*** select mode ***\n")
-                a.printServos()
+            print("\n*** select mode ***\n")
+            a.printServos()
             print("b: back (quit), s: select, r: reset, c: control raw, a: control angle, m: swipe")
             mode = input("Set your choice: ")
             a.setMode(mode)
