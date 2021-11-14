@@ -3,9 +3,10 @@
 import os
 import time
 import logging
-import configparser
-#from threading import Thread
-import Adafruit_PCA9685
+import json
+ADAFRUIT = 1
+if ADAFRUIT:
+    import Adafruit_PCA9685 # for PC simulation
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
@@ -23,59 +24,69 @@ class Actuation():
     MOV  = 5
 
     def __init__(self):
-        self.pwm = Adafruit_PCA9685.PCA9685()
-        self.pwm.set_pwm_freq(60)
+        if ADAFRUIT:
+            self.pwm = Adafruit_PCA9685.PCA9685()
+            self.pwm.set_pwm_freq(60)
         self.mode = self.IDLE
         self.actives = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.min_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.max_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.range_angles = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.readIni()
         self.swipe = 0
         self.swipe_sign = 1
         self.MAX_SWIPE = 200 # max swipe angle
+        self.servos = self.readJSONConfig()
 
-    def readIni(self):
-        logger.info("Read ini file")
-        Config = configparser.ConfigParser()
-        Config.read("config.ini")
-        self.min_pwms[0] = Config.getint('channel_0', 'servo_min_pwm')
-        self.max_pwms[0] = Config.getint('channel_0', 'servo_max_pwm')
-        self.range_angles[0] = Config.getint('channel_0', 'servo_range_angle')
-        self.min_pwms[1] = Config.getint('channel_1', 'servo_min_pwm')
-        self.max_pwms[1] = Config.getint('channel_1', 'servo_max_pwm')
-        self.range_angles[1] = Config.getint('channel_1', 'servo_range_angle')
-        self.min_pwms[2] = Config.getint('channel_2', 'servo_min_pwm')
-        self.max_pwms[2] = Config.getint('channel_2', 'servo_max_pwm')
-        self.range_angles[2] = Config.getint('channel_2', 'servo_range_angle')
-        self.min_pwms[3] = Config.getint('channel_3', 'servo_min_pwm')
-        self.max_pwms[3] = Config.getint('channel_3', 'servo_max_pwm')
-        self.range_angles[3] = Config.getint('channel_3', 'servo_range_angle')
-        self.min_pwms[4] = Config.getint('channel_4', 'servo_min_pwm')
-        self.max_pwms[4] = Config.getint('channel_4', 'servo_max_pwm')
-        self.range_angles[4] = Config.getint('channel_4', 'servo_range_angle')
-        self.min_pwms[5] = Config.getint('channel_5', 'servo_min_pwm')
-        self.max_pwms[5] = Config.getint('channel_5', 'servo_max_pwm')
-        self.range_angles[5] = Config.getint('channel_5', 'servo_range_angle')
-        self.min_pwms[6] = Config.getint('channel_6', 'servo_min_pwm')
-        self.max_pwms[6] = Config.getint('channel_6', 'servo_max_pwm')
-        self.range_angles[6] = Config.getint('channel_6', 'servo_range_angle')
-        self.min_pwms[7] = Config.getint('channel_7', 'servo_min_pwm')
-        self.max_pwms[7] = Config.getint('channel_7', 'servo_max_pwm')
-        self.range_angles[7] = Config.getint('channel_7', 'servo_range_angle')
-        self.min_pwms[8] = Config.getint('channel_8', 'servo_min_pwm')
-        self.max_pwms[8] = Config.getint('channel_8', 'servo_max_pwm')
-        self.range_angles[8] = Config.getint('channel_8', 'servo_range_angle')
-        self.min_pwms[9] = Config.getint('channel_9', 'servo_min_pwm')
-        self.max_pwms[9] = Config.getint('channel_9', 'servo_max_pwm')
-        self.range_angles[9] = Config.getint('channel_9', 'servo_range_angle')
-        self.min_pwms[10] = Config.getint('channel_10', 'servo_min_pwm')
-        self.max_pwms[10] = Config.getint('channel_10', 'servo_max_pwm')
-        self.range_angles[10] = Config.getint('channel_10', 'servo_range_angle')
-        self.min_pwms[11] = Config.getint('channel_11', 'servo_min_pwm')
-        self.max_pwms[11] = Config.getint('channel_11', 'servo_max_pwm')
-        self.range_angles[11] = Config.getint('channel_11', 'servo_range_angle')
+    def readJSONConfig(self):
+        # Opening JSON file
+        f = open('config.json',)
+        # returns JSON object as a dictionary
+        data = json.load(f)
+        # Closing file
+        f.close()
+
+        self.min_pwms[0] = data["FL"]["knee"]["min_pwm"]
+        self.max_pwms[0] = data["FL"]["knee"]["max_pwm"]
+        self.range_angles[0] = data["FL"]["knee"]["angle_range"]
+        self.min_pwms[1] = data["FL"]["hip"]["min_pwm"]
+        self.max_pwms[1] = data["FL"]["hip"]["max_pwm"]
+        self.range_angles[1] = data["FL"]["hip"]["angle_range"]
+        self.min_pwms[2] = data["FL"]["rolling"]["min_pwm"]
+        self.max_pwms[2] = data["FL"]["rolling"]["max_pwm"]
+        self.range_angles[2] = data["FL"]["rolling"]["angle_range"]
+
+        self.min_pwms[3] = data["RL"]["knee"]["min_pwm"]
+        self.max_pwms[3] = data["RL"]["knee"]["max_pwm"]
+        self.range_angles[3] = data["RL"]["knee"]["angle_range"]
+        self.min_pwms[4] = data["RL"]["hip"]["min_pwm"]
+        self.max_pwms[4] = data["RL"]["hip"]["max_pwm"]
+        self.range_angles[4] = data["RL"]["hip"]["angle_range"]
+        self.min_pwms[5] = data["RL"]["rolling"]["min_pwm"]
+        self.max_pwms[5] = data["RL"]["rolling"]["max_pwm"]
+        self.range_angles[5] = data["RL"]["rolling"]["angle_range"]
+
+        self.min_pwms[6] = data["FR"]["knee"]["min_pwm"]
+        self.max_pwms[6] = data["FR"]["knee"]["max_pwm"]
+        self.range_angles[6] = data["FR"]["knee"]["angle_range"]
+        self.min_pwms[7] = data["FR"]["hip"]["min_pwm"]
+        self.max_pwms[7] = data["FR"]["hip"]["max_pwm"]
+        self.range_angles[7] = data["FR"]["hip"]["angle_range"]
+        self.min_pwms[8] = data["FR"]["rolling"]["min_pwm"]
+        self.max_pwms[8] = data["FR"]["rolling"]["max_pwm"]
+        self.range_angles[8] = data["FR"]["rolling"]["angle_range"]
+
+        self.min_pwms[9] = data["RR"]["knee"]["min_pwm"]
+        self.max_pwms[9] = data["RR"]["knee"]["max_pwm"]
+        self.range_angles[9] = data["RR"]["knee"]["angle_range"]
+        self.min_pwms[10] = data["RR"]["hip"]["min_pwm"]
+        self.max_pwms[10] = data["RR"]["hip"]["max_pwm"]
+        self.range_angles[10] = data["RR"]["hip"]["angle_range"]
+        self.min_pwms[11] = data["RR"]["rolling"]["min_pwm"]
+        self.max_pwms[11] = data["RR"]["rolling"]["max_pwm"]
+        self.range_angles[11] = data["RR"]["rolling"]["angle_range"]
+
+        return data
 
     def setMode(self, mode):
         if(mode == "b" or mode == "q"):
@@ -98,6 +109,7 @@ class Actuation():
         for i in self.actives:
             if i == 1:
                 if unit == 0:
+                    # raw pwm values
                     if pwm<self.min_pwms[index]:
                         pwm = self.min_pwms[index]
                     elif pwm>self.max_pwms[index]:
@@ -105,6 +117,7 @@ class Actuation():
                     self.pwms[index] = pwm
                     self.pwm.set_pwm(index, 0, pwm)
                 else:
+                    # angle
                     p = int(pwm*(self.max_pwms[index]-self.min_pwms[index])/self.range_angles[index]+self.min_pwms[index])
                     if p<self.min_pwms[index]:
                         p = self.min_pwms[index]
