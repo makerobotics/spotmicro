@@ -80,18 +80,19 @@ class Actuation():
         self.joint = ""
 
     def printServos(self):
+        print("Active leg: "+self.leg)
+        print("Active joint: "+self.joint)
         try:
-            print("Active leg: "+self.leg)
-            print("Active joint: "+self.joint)
             print("Min PWM: "+str(self.servos.sc[self.leg][self.joint]["min_pwm"]))
             print("Max PWM: "+str(self.servos.sc[self.leg][self.joint]["max_pwm"]))
+        except:
+            pass    
             print("\nPWMs: ")
             print(self.servos.pwms)
             print("Angles: ")
             print(self.servos.angles)
             print("\n")
-        except:
-            raise
+        
 
     def setMode(self, mode):
         if(mode == "b" or mode == "q"):
