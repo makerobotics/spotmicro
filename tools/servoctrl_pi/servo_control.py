@@ -31,30 +31,31 @@ class Servos():
         data = json.load(f)
         # Closing file
         f.close()
+        #print(data["FL"]["rolling"]["min_pwm"])
         return data
 
     def getChannel(self, leg, joint):
-        return self.sc[leg][joint].id
+        return self.sc[leg][joint]["id"]
 
     def setServoRaw(self, leg, joint, pwm):
         # raw pwm values
-        if pwm < self.sc[leg][joint].min_pwm:
-            pwm = self.sc[leg][joint].min_pwm
-        elif pwm > self.sc[leg][joint].max_pwm:
-            pwm = self.sc[leg][joint].max_pwm
-        self.pwm.set_pwm(self.sc[leg][joint].id, 0, pwm)
+        if pwm < self.sc[leg][joint]["min_pwm"]:
+            pwm = self.sc[leg][joint]["min_pwm"]
+        elif pwm > self.sc[leg][joint]["max_pwm"]:
+            pwm = self.sc[leg][joint]["max_pwm"]
+        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
         self.pwms[getChannel(leg, joint)] = pwm
 
     def setServoAngle(self, leg, joint, angle):
         # angle
-        pwm = int(angle*(self.sc[leg][joint].max_pwm-self.sc[leg][joint].min_pwm)/self.sc[leg][joint].angle_range+self.sc[leg][joint].min_pwm)
-        if pwm < self.sc[leg][joint].min_pwm:
-            pwm = self.sc[leg][joint].min_pwm
-        elif pwm > self.sc[leg][joint].max_pwm:
-            pwm = self.sc[leg][joint].max_pwm
-        self.pwm.set_pwm(self.sc[leg][joint].id, 0, pwm)
-        self.pwms[getChannel(leg, joint)] = pwm
-        self.angles[getChannel(leg, joint)] = angle
+        pwm = int(angle*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
+        if pwm < self.sc[leg][joint]["min_pwm"]:
+            pwm = self.sc[leg][joint]["min_pwm"]
+        elif pwm > self.sc[leg][joint]["max_pwm"]:
+            pwm = self.sc[leg][joint]["max_pwm"]
+        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
+        self.pwms[self.getChannel(leg, joint)] = pwm
+        self.angles[self.getChannel(leg, joint)] = angle
 
     def close(self):
         for i in range(11):
@@ -74,9 +75,6 @@ class Actuation():
         self.swipe = 0
         self.swipe_sign = 1
         self.MAX_SWIPE = 200 # max swipe angle
-        #self.min_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        #self.max_pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        #self.range_angles = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.servos = Servos()
         self.leg = ""
         self.joint = ""
@@ -89,8 +87,8 @@ class Actuation():
             print(self.servos.pwms)
             print("Angles: ")
             print(self.servos.angles)
-            print("Min PWM: "+self.servos.sc[self.leg][self.joint].min_pwm)
-            print("Max PWM: "+self.servos.sc[self.leg][self.joint].max_pwm)
+            print("Min PWM: "+self.servos.sc[self.leg][self.joint]["min_pwm"])
+            print("Max PWM: "+self.servos.sc[self.leg][self.joint]["max_pwm"])
             print("\n")
         except:
             pass
@@ -122,6 +120,14 @@ class Actuation():
         self.setServo(1, self.swipe)
         print("swipe: "+str(self.swipe)+"  ", end = "\r")
         #self.printServos()
+
+    def getJoint(self, joint):
+        if joint == "k":
+            return "knee"
+        elif joint == "h":
+            return "hip"
+        else:
+            return "rolling"
 
     def close(self):
         self.servos.close()
@@ -160,7 +166,7 @@ if __name__ == '__main__':
                     else:
                         try:
                             if(command == "fl" or command == "fr" or command == "rl" or command == "rr"):
-                                a.leg = command
+                                a.leg = command.upper()
                         except:
                             message = "Wrong selection !!"
                     command = input('Select joint to be selected ("k nee", "h ip", "r oll" or "b" to go back): ')
@@ -168,7 +174,7 @@ if __name__ == '__main__':
                     else:
                         try:
                             if(command == "k" or command == "h" or command == "r"):
-                                a.joint = command
+                                a.joint = a.getJoint(command)
                                 cls()
                                 a.setMode("i")
                         except:
@@ -189,9 +195,10 @@ if __name__ == '__main__':
                     if command == "b" or command == "q": break
                     else:
                         try:
-                            a.servos.setServoRaw(self.leg, self.joint, int(command))
+                            a.servos.setServoRaw(a.leg, a.joint, int(command))
                         except:
                             message = "Wrong selection !!"
+                            #raise
             elif mode == "a":
                 command = 0
                 while a.mode == a.CTR:
@@ -204,9 +211,10 @@ if __name__ == '__main__':
                     if command == "b" or command == "q": break
                     else:
                         try:
-                            a.servos.setServoAngle(self.leg, self.joint, int(command))
+                            a.servos.setServoAngle(a.leg, a.joint, int(command))
                         except:
                             message = "Wrong selection !!"
+                            raise
             elif mode == "m":
                 try:
                     while True:
