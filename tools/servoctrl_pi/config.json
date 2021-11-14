@@ -2,9 +2,9 @@
     "FL": {
       "knee": {
         "id": 0,
-        "min_pwm": 165,
+        "min_pwm": 100,
         "max_pwm": 700,
-        "angle_range": 170,
+        "angle_range": 180,
         "angle_factor": 10,
         "angle_offset": 10
       },

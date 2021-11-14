@@ -175,6 +175,8 @@ if __name__ == '__main__':
             mode = input("Set your choice: ")
             a.setMode(mode)
             if mode == "b" or mode == "q":
+                for i in range(11):
+                    a.pwm.set_pwm(i, 0, 4096)
                 a.close()
                 break
             elif mode == "s":
@@ -222,7 +224,7 @@ if __name__ == '__main__':
                     cls()
                     print("\n*** control mode (angle) ***\n")
                     a.printServos()
-                    print("Last angle: "+pwm+"°")
+                    print("Last angle: "+str(pwm)+"°")
                     pwm = input('Select servo angle (or "b" to go back): ')
                     if pwm == "b" or pwm == "q": break
                     else:
