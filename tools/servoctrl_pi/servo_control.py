@@ -83,12 +83,12 @@ class Actuation():
         try:
             print("Active leg: "+self.leg)
             print("Active joint: "+self.joint)
-            print("PWMs: ")
+            print("Min PWM: "+self.servos.sc[self.leg][self.joint]["min_pwm"])
+            print("Max PWM: "+self.servos.sc[self.leg][self.joint]["max_pwm"])
+            print("\nPWMs: ")
             print(self.servos.pwms)
             print("Angles: ")
             print(self.servos.angles)
-            print("Min PWM: "+self.servos.sc[self.leg][self.joint]["min_pwm"])
-            print("Max PWM: "+self.servos.sc[self.leg][self.joint]["max_pwm"])
             print("\n")
         except:
             pass
@@ -167,9 +167,15 @@ if __name__ == '__main__':
                         try:
                             if(command == "fl" or command == "fr" or command == "rl" or command == "rr"):
                                 a.leg = command.upper()
+                            message = ""
                         except:
                             message = "Wrong selection !!"
-                    command = input('Select joint to be selected ("k nee", "h ip", "r oll" or "b" to go back): ')
+                            a.setMode("i")
+                    cls()
+                    print(message)
+                    print("\n*** select mode ***\n")
+                    a.printServos()
+                    command = input('Select joint to be selected ("(k)nee", "(h)ip", "(r)olling" or "b" to go back): ')
                     if command == "b" or command == "q": break
                     else:
                         try:
@@ -177,6 +183,7 @@ if __name__ == '__main__':
                                 a.joint = a.getJoint(command)
                                 cls()
                                 a.setMode("i")
+                                message = ""
                         except:
                             message = "Wrong selection !!"
             elif mode == "r":
@@ -196,6 +203,7 @@ if __name__ == '__main__':
                     else:
                         try:
                             a.servos.setServoRaw(a.leg, a.joint, int(command))
+                            message = ""
                         except:
                             message = "Wrong selection !!"
                             #raise
@@ -212,6 +220,7 @@ if __name__ == '__main__':
                     else:
                         try:
                             a.servos.setServoAngle(a.leg, a.joint, int(command))
+                            message = ""
                         except:
                             message = "Wrong selection !!"
                             raise
