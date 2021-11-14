@@ -83,15 +83,15 @@ class Actuation():
         try:
             print("Active leg: "+self.leg)
             print("Active joint: "+self.joint)
-            print("Min PWM: "+self.servos.sc[self.leg][self.joint]["min_pwm"])
-            print("Max PWM: "+self.servos.sc[self.leg][self.joint]["max_pwm"])
+            print("Min PWM: "+str(self.servos.sc[self.leg][self.joint]["min_pwm"]))
+            print("Max PWM: "+str(self.servos.sc[self.leg][self.joint]["max_pwm"]))
             print("\nPWMs: ")
             print(self.servos.pwms)
             print("Angles: ")
             print(self.servos.angles)
             print("\n")
         except:
-            pass
+            raise
 
     def setMode(self, mode):
         if(mode == "b" or mode == "q"):
@@ -150,8 +150,8 @@ if __name__ == '__main__':
         a = Actuation()
         while a.mode != a.QUIT:
             print(message)
-            print("\n*** Main mode ***\n")
-            a.printServos()
+                print("\n*** select mode ***\n")
+                a.printServos()
             print("b: back (quit), s: select, r: reset, c: control raw, a: control angle, m: swipe")
             mode = input("Set your choice: ")
             a.setMode(mode)
