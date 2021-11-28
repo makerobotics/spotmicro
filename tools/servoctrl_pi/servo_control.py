@@ -54,7 +54,7 @@ class Servos():
         # raw pwm values
         p = self.bound(leg, joint, pwm)
         self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, p)
-        self.pwms[getChannel(leg, joint)] = p
+        self.pwms[self.getChannel(leg, joint)] = p
 
     def setServoAngle(self, leg, joint, angle):
         factor = int( (self.sc[leg][joint]["max_angle_pwm"]-self.sc[leg][joint]["min_angle_pwm"])/(self.sc[leg][joint]["max_angle"]-self.sc[leg][joint]["min_angle"]) )
@@ -204,7 +204,7 @@ if __name__ == '__main__':
                     print("\n*** reset mode ***\n")
             elif mode == "c":
                 while a.mode == a.CTR:
-                    cls()
+                    #cls()
                     print(message)
                     print("\n*** control mode (raw PWM) ***\n")
                     a.printServos()
@@ -216,11 +216,11 @@ if __name__ == '__main__':
                             message = ""
                         except:
                             message = "Wrong selection !!"
-                            #raise
+                            raise
             elif mode == "a":
                 command = 0
                 while a.mode == a.CTR:
-                    cls()
+                    #cls()
                     print(message)
                     print("\n*** control mode (angle) ***\n")
                     a.printServos()
