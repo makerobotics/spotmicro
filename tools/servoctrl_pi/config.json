@@ -13,8 +13,8 @@
         "id": 1,
         "min_angle_pwm": 650,
         "max_angle_pwm": 200,
-        "min_angle": 30,
-        "max_angle": 180,
+        "min_angle": -90,
+        "max_angle": 90,
         "min_pwm": 115,
         "max_pwm": 660
       },
@@ -22,8 +22,8 @@
         "id": 2,
         "min_angle_pwm": 650,
         "max_angle_pwm": 200,
-        "min_angle": 30,
-        "max_angle": 180,
+        "min_angle": -90,
+        "max_angle": 90,
         "min_pwm": 110,
         "max_pwm": 670
       }
