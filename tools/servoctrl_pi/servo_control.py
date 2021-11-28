@@ -48,7 +48,7 @@ class Servos():
     def setServoAngle(self, leg, joint, angle):
         # angle
         #pwm = int((angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"])*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
-        pwm = int( self.sc[leg][joint]["min_pwm"] + (self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]) * (angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"]))
+        pwm = int( self.sc[leg][joint]["min_pwm"] + ((self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]) * (angle * self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"]) )
         if pwm < self.sc[leg][joint]["min_pwm"]:
             pwm = self.sc[leg][joint]["min_pwm"]
         elif pwm > self.sc[leg][joint]["max_pwm"]:
