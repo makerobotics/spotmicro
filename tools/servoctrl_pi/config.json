@@ -2,117 +2,117 @@
     "FL": {
       "knee": {
         "id": 0,
-        "min_pwm": 200,
-        "max_pwm": 650,
-        "angle_range": 150,
-        "angle_factor": -1,
-        "angle_offset": 210,
-        "angle_sitting": 180
+        "min_angle_pwm": 650,
+        "max_angle_pwm": 200,
+        "min_angle": 30,
+        "max_angle": 180,
+        "min_pwm": 115,
+        "max_pwm": 660
+      },
+      "shoulder": {
+        "id": 1,
+        "min_angle_pwm": 650,
+        "max_angle_pwm": 200,
+        "min_angle": 30,
+        "max_angle": 180,
+        "min_pwm": 115,
+        "max_pwm": 660
       },
       "hip": {
-        "id": 1,
-        "min_pwm": 115,
-        "max_pwm": 660,
-        "angle_range": 195,
-        "angle_factor": 1,
-        "angle_offset": 0,
-        "angle_sitting": 85
-      },
-      "rolling": {
         "id": 2,
+        "min_angle_pwm": 650,
+        "max_angle_pwm": 200,
+        "min_angle": 30,
+        "max_angle": 180,
         "min_pwm": 110,
-        "max_pwm": 670,
-        "angle_range": 200,
-        "angle_factor": 1,
-        "angle_offset": 85,
-        "angle_sitting": 90
+        "max_pwm": 670
       }
     },
     "RL": {
         "knee": {
           "id": 3,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 130,
-          "max_pwm": 660,
-          "angle_range": 190,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
+          "max_pwm": 660
+        },
+        "shoulder": {
+          "id": 4,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
+          "min_pwm": 110,
+          "max_pwm": 670
         },
         "hip": {
-          "id": 4,
-          "min_pwm": 110,
-          "max_pwm": 670,
-          "angle_range": 220,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
-        },
-        "rolling": {
           "id": 5,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 150,
-          "max_pwm": 580,
-          "angle_range": 180,
-          "angle_factor": 1,
-          "angle_offset": 85,
-          "angle_sitting": 90
+          "max_pwm": 580
         }
       },
       "FR": {
         "knee": {
           "id": 6,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 100,
-          "max_pwm": 700,
-          "angle_range": 210,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
+          "max_pwm": 700
+        },
+        "shoulder": {
+          "id": 7,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
+          "min_pwm": 100,
+          "max_pwm": 700
         },
         "hip": {
-          "id": 7,
-          "min_pwm": 100,
-          "max_pwm": 700,
-          "angle_range": 210,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
-        },
-        "rolling": {
           "id": 8,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 50,
-          "max_pwm": 980,
-          "angle_range": 180,
-          "angle_factor": -1,
-          "angle_offset": 85,
-          "angle_sitting": 90
+          "max_pwm": 980
         }
       },
       "RR": {
         "knee": {
           "id": 9,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 100,
-          "max_pwm": 700,
-          "angle_range": 210,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
+          "max_pwm": 700
+        },
+        "shoulder": {
+          "id": 10,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
+          "min_pwm": 100,
+          "max_pwm": 700
         },
         "hip": {
-          "id": 10,
-          "min_pwm": 100,
-          "max_pwm": 700,
-          "angle_range": 210,
-          "angle_factor": 0,
-          "angle_offset": 0,
-          "angle_sitting": 85
-        },
-        "rolling": {
           "id": 11,
+          "min_angle_pwm": 650,
+          "max_angle_pwm": 200,
+          "min_angle": 30,
+          "max_angle": 180,
           "min_pwm": 50,
-          "max_pwm": 980,
-          "angle_range": 180,
-          "angle_factor": -1,
-          "angle_offset": 87,
-          "angle_sitting": 90
+          "max_pwm": 980
         }
       }
   }

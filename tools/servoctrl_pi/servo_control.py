@@ -36,28 +36,33 @@ class Servos():
     def getChannel(self, leg, joint):
         return self.sc[leg][joint]["id"]
 
+    def bound(self, leg, joint, pwm):
+        if(self.sc[leg][joint]["max_angle_pwm"] > self.sc[leg][joint]["min_angle_pwm"]):
+            min = self.sc[leg][joint]["min_angle_pwm"]
+            max = self.sc[leg][joint]["max_angle_pwm"]
+        else:
+            max = self.sc[leg][joint]["min_angle_pwm"]
+            min = self.sc[leg][joint]["max_angle_pwm"]
+        
+        if pwm < min:
+            pwm = min
+        elif pwm > max:
+            pwm = max
+        return pwm
+
     def setServoRaw(self, leg, joint, pwm):
         # raw pwm values
-        if pwm < self.sc[leg][joint]["min_pwm"]:
-            pwm = self.sc[leg][joint]["min_pwm"]
-        elif pwm > self.sc[leg][joint]["max_pwm"]:
-            pwm = self.sc[leg][joint]["max_pwm"]
-        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
-        self.pwms[getChannel(leg, joint)] = pwm
+        p = self.bound(leg, joint, pwm)
+        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, p)
+        self.pwms[getChannel(leg, joint)] = p
 
     def setServoAngle(self, leg, joint, angle):
-        # angle
-        #pwm = int((angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"])*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
-        pwm = int( self.sc[leg][joint]["min_pwm"] + ((self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]) * (angle * self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"]) )
-        if pwm < self.sc[leg][joint]["min_pwm"]:
-            pwm = self.sc[leg][joint]["min_pwm"]
-        elif pwm > self.sc[leg][joint]["max_pwm"]:
-            pwm = self.sc[leg][joint]["max_pwm"]
-        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
-        #message = self.getChannel(leg, joint)
-        #message += str(pwm)
-        #message += str(angle)
-        self.pwms[self.getChannel(leg, joint)] = pwm
+        factor = int( (self.sc[leg][joint]["max_angle_pwm"]-self.sc[leg][joint]["min_angle_pwm"])/(self.sc[leg][joint]["max_angle"]-self.sc[leg][joint]["min_angle"]) )
+        offset = int( self.sc[leg][joint]["max_angle_pwm"] - factor*self.sc[leg][joint]["max_angle"])
+        pwm = int( factor * angle + offset)
+        p = self.bound(leg, joint, pwm)
+        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, p)
+        self.pwms[self.getChannel(leg, joint)] = p
         self.angles[self.getChannel(leg, joint)] = angle
 
     def close(self):
@@ -129,7 +134,7 @@ class Actuation():
         elif joint == "h":
             return "hip"
         else:
-            return "rolling"
+            return "shoulder"
 
     def close(self):
         self.servos.close()
@@ -181,11 +186,11 @@ if __name__ == '__main__':
                     print(message)
                     print("\n*** select mode ***\n")
                     a.printServos()
-                    command = input('Select joint to be selected ("(k)nee", "(h)ip", "(r)olling" or "b" to go back): ')
+                    command = input('Select joint to be selected ("(k)nee", "(h)ip", "(s)houlder" or "b" to go back): ')
                     if command == "b" or command == "q": break
                     else:
                         try:
-                            if(command == "k" or command == "h" or command == "r"):
+                            if(command == "k" or command == "h" or command == "s"):
                                 a.joint = a.getJoint(command)
                                 cls()
                                 a.setMode("i")
