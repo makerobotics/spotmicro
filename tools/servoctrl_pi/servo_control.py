@@ -47,12 +47,16 @@ class Servos():
 
     def setServoAngle(self, leg, joint, angle):
         # angle
-        pwm = int((angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"])*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
+        #pwm = int((angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"])*(self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]+self.sc[leg][joint]["min_pwm"])
+        pwm = int( self.sc[leg][joint]["min_pwm"] + (self.sc[leg][joint]["max_pwm"]-self.sc[leg][joint]["min_pwm"])/self.sc[leg][joint]["angle_range"]) * (angle*self.sc[leg][joint]["angle_factor"]+self.sc[leg][joint]["angle_offset"]))
         if pwm < self.sc[leg][joint]["min_pwm"]:
             pwm = self.sc[leg][joint]["min_pwm"]
         elif pwm > self.sc[leg][joint]["max_pwm"]:
             pwm = self.sc[leg][joint]["max_pwm"]
-        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
+        #self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
+        message = self.getChannel(leg, joint)
+        message += str(pwm)
+        message += str(angle)
         self.pwms[self.getChannel(leg, joint)] = pwm
         self.angles[self.getChannel(leg, joint)] = angle
 

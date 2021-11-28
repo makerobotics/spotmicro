@@ -2,19 +2,19 @@
     "FL": {
       "knee": {
         "id": 0,
-        "min_pwm": 100,
-        "max_pwm": 700,
-        "angle_range": 180,
-        "angle_factor": 10,
-        "angle_offset": 10,
-        "angle_sitting": 85
+        "min_pwm": 200,
+        "max_pwm": 650,
+        "angle_range": 150,
+        "angle_factor": -1,
+        "angle_offset": 210,
+        "angle_sitting": 180
       },
       "hip": {
         "id": 1,
         "min_pwm": 115,
         "max_pwm": 660,
         "angle_range": 195,
-        "angle_factor": 0,
+        "angle_factor": 1,
         "angle_offset": 0,
         "angle_sitting": 85
       },
