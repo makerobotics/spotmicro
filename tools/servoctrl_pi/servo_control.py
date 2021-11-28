@@ -53,10 +53,10 @@ class Servos():
             pwm = self.sc[leg][joint]["min_pwm"]
         elif pwm > self.sc[leg][joint]["max_pwm"]:
             pwm = self.sc[leg][joint]["max_pwm"]
-        #self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
-        message = self.getChannel(leg, joint)
-        message += str(pwm)
-        message += str(angle)
+        self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, pwm)
+        #message = self.getChannel(leg, joint)
+        #message += str(pwm)
+        #message += str(angle)
         self.pwms[self.getChannel(leg, joint)] = pwm
         self.angles[self.getChannel(leg, joint)] = angle
 
@@ -89,13 +89,12 @@ class Actuation():
             print("Min PWM: "+str(self.servos.sc[self.leg][self.joint]["min_pwm"]))
             print("Max PWM: "+str(self.servos.sc[self.leg][self.joint]["max_pwm"]))
         except:
-            pass    
+            pass
         print("\nPWMs: ")
         print(self.servos.pwms)
         print("Angles: ")
         print(self.servos.angles)
         print("\n")
-        
 
     def setMode(self, mode):
         if(mode == "b" or mode == "q"):
@@ -198,7 +197,6 @@ if __name__ == '__main__':
                     cls()
                     print(message)
                     print("\n*** reset mode ***\n")
-                    
             elif mode == "c":
                 while a.mode == a.CTR:
                     cls()
