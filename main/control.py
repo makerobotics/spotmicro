@@ -7,6 +7,7 @@ from threading import Thread
 #import RPi.GPIO as GPIO
 import sense
 import data
+import servos
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -25,7 +26,8 @@ class control(Thread):
         self._running = True
         if(self.TRACE == 1):
             self.initTrace()
-        self.servos = Servos()
+        self.servos = servos.servos()
+        self.initialPosition()
         
     def initTrace(self):
         if(self.TRACE == 1):
@@ -63,13 +65,23 @@ class control(Thread):
         pass
         #print("."),
 
+    def initialPosition(self):
+        self.servos.setServoAngle("FL", "hip", 0)
+        time.sleep(0.5)
+        self.servos.setServoAngle("FR", "hip", 0)
+        time.sleep(0.5)
+        self.servos.setServoAngle("RL", "hip", 0)
+        time.sleep(0.5)
+        self.servos.setServoAngle("RR", "hip", 0)
+        time.sleep(0.5)
+        
     def runCommand(self, cmd):
         logger.debug("Control thread received command: " + cmd)
         data = cmd.split(';')
         if(data[0] == "SERVO"):
             self.servos.setServoAngle(data[1], "hip", 0)
-            self.servos.setServoAngle(data[1], "shoulder", data[2])
-            self.servos.setServoAngle(data[1], "knee", data[3])
+            self.servos.setServoAngle(data[1], "shoulder", int(data[2]))
+            self.servos.setServoAngle(data[1], "knee", int(data[3]))
         elif(data[0] == "RESET"):
             self.servos.close()
 

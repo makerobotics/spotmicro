@@ -9,9 +9,9 @@ if SERVO:
     import Adafruit_PCA9685 # for PC simulation
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
-class Servos():
+class servos():
 
     def __init__(self):
         if SERVO:
@@ -57,13 +57,15 @@ class Servos():
     def setServoAngle(self, leg, joint, angle):
         factor = int( (self.sc[leg][joint]["max_angle_pwm"]-self.sc[leg][joint]["min_angle_pwm"])/(self.sc[leg][joint]["max_angle"]-self.sc[leg][joint]["min_angle"]) )
         offset = int( self.sc[leg][joint]["max_angle_pwm"] - factor*self.sc[leg][joint]["max_angle"])
+        #logger.debug(str(factor) + " " + str(offset))
         pwm = int( factor * angle + offset)
         p = self.bound(leg, joint, pwm)
         if SERVO:
             self.pwm.set_pwm(self.sc[leg][joint]["id"], 0, p)
         self.pwms[self.getChannel(leg, joint)] = p
         self.angles[self.getChannel(leg, joint)] = angle
-
+        logger.debug(leg+" "+joint+" "+str(angle) + " " + str(p))
+        
     def close(self):
         if SERVO:
             for i in range(11):
