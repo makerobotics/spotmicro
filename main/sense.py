@@ -94,7 +94,7 @@ class sense(Thread):
         pass
 
     def run(self):
-        time.sleep(0.5)
+        #time.sleep(0.5)
         data.RT_data["test"] = "test data"
         if(self.SERIAL == 1):
             self.readSerial()
@@ -104,7 +104,7 @@ class sense(Thread):
                     self.decodeSerialFrame()
             self.readIMU() ## Too long. Shift in a thread !!
             self.idleTask()
-            #time.sleep(0.1)
+            time.sleep(0.1)
         self.close()
 
 # Run this if standalone (test purpose)

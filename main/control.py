@@ -4,7 +4,6 @@ import time
 import logging
 import configparser
 from threading import Thread
-import Adafruit_PCA9685
 #import RPi.GPIO as GPIO
 import sense
 import data
@@ -14,9 +13,9 @@ logger.setLevel(logging.INFO)
 
 class control(Thread):
 
-    TRACE = 1
+    TRACE = 0
 
-    def __init__(self, sensors):
+    def __init__(self):
         Thread.__init__(self)
         self.tracefile = None
         self.traceline = 0
@@ -24,9 +23,9 @@ class control(Thread):
         self.lastFrameTimestamp = time.time()
         self.cycleTime = 0
         self._running = True
-        #self.initTrace()
-        self.pwm = Adafruit_PCA9685.PCA9685()
-        self.pwm.set_pwm_freq(60)
+        if(self.TRACE == 1):
+            self.initTrace()
+        self.servos = Servos()
         
     def initTrace(self):
         if(self.TRACE == 1):
@@ -53,24 +52,26 @@ class control(Thread):
 
     def terminate(self): 
         self._running = False
-        
-    def idleTask(self):
-        pass
-        #print("."),
 
     def close(self):
         logger.debug("Closing control thread")
         if self.TRACE == 1 and self.tracefile != None:
             self.tracefile.close()
+        self.servos.close()
+        
+    def idleTask(self):
+        pass
+        #print("."),
 
     def runCommand(self, cmd):
-        logger.info("Control thread received command: " + cmd)
+        logger.debug("Control thread received command: " + cmd)
         data = cmd.split(';')
         if(data[0] == "SERVO"):
-            self.pwm.set_pwm(int(data[1]), 0, int(data[2]))
+            self.servos.setServoAngle(data[1], "hip", 0)
+            self.servos.setServoAngle(data[1], "shoulder", data[2])
+            self.servos.setServoAngle(data[1], "knee", data[3])
         elif(data[0] == "RESET"):
-            for ch in Range(12):
-                self.pwm.set_pwm(ch, 0, 0)
+            self.servos.close()
 
     def run(self):
         logger.debug('Control thread running')
@@ -89,9 +90,9 @@ if __name__ == '__main__':
 
     try:
         logger.info("Started main")
-        s = sense.sense()
-        s.start()
-        c = control(s) 
+        #s = sense.sense()
+        #s.start()
+        c = control() 
         c.start()
         time.sleep(2)
         c.stop("Test")
@@ -100,10 +101,10 @@ if __name__ == '__main__':
         logger.info("Keyboard interrupt. Terminate thread")
     finally:
         c.terminate()
-        s.terminate()
+        #s.terminate()
         logger.debug("Thread terminated")
 
         # Wait for actual termination (if needed)  
         c.join()
-        s.join()
+        #s.join()
         logger.debug("Thread finished")

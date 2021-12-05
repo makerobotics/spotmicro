@@ -55,7 +55,8 @@ class MyWebSocket(tornado.websocket.WebSocketHandler):
         return True
 
     def guiLoop(self):
-        self.write_message(json.dumps(data.RT_data))
+        #self.write_message(json.dumps(data.RT_data))
+        pass
 
     def open(self):
         logger.info("WebSocket opened")
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     logger.debug("Starting senor thread")
     s = sense.sense()
     s.start()
-    c = control.control(s)
+    c = control.control()
     c.start()
     while(1):
         logger.info("Starting web server")
@@ -148,4 +149,4 @@ if __name__ == '__main__':
     # Wait for actual termination (if needed)
     c.join()
     s.join()
-    logger.info("terminated")
+    logger.info("Spot micro terminated")

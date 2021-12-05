@@ -1,8 +1,3 @@
-/* var ws = new WebSocket("ws://127.0.0.1:5678/");
-ws.onmessage = function (event) {
-    console.log(event.data);
-};
- */
 const REFRESH = 100;
 const DX = 1, DY = 1;
 const SIM_2D = 0;
@@ -10,6 +5,7 @@ const SIM_2D = 0;
 let a1 = 0, a2 = 0;
 let dir = 1;
 let mode = "";
+let ws;
 
 function init() {
     console.log("Init");
@@ -17,9 +13,78 @@ function init() {
     let md = document.getElementById("sims");
     md.value = "sit";
     mode = "sit";
-
+    WebSocketControl();
     setInterval(loop, REFRESH);
 };
+
+function WebSocketControl() {
+    if ("WebSocket" in window) {
+
+        ws = new WebSocket('ws://' + location.host + "/websocket");
+
+        ws.onopen = function () {
+
+            document.getElementById("input").style.backgroundColor = "green";
+            log('Connection opened');
+        };
+
+        ws.onmessage = function (evt) {
+            var obj;
+            try {
+                obj = JSON.parse(evt.data);
+                /*document.getElementById('dist').value = obj.distance;
+                document.getElementById('speedleft').value = obj.speedL;
+                document.getElementById('posleft').value = obj.encoderL;
+                document.getElementById('speedright').value = obj.speedR;
+                document.getElementById('posright').value = obj.encoderR;
+                document.getElementById('yaw').value = obj.yaw;
+                document.getElementById('odo').value = obj.odoDistance;*/
+            } catch (e) {
+                //document.getElementById('log').innerHTML += 'Rx: '+evt.data+'\n';
+                //log('Rx ok.');
+                document.getElementById("video").src = "data:image/jpeg;base64," + evt.data;
+            }
+        };
+
+        ws.onerror = function (event) {
+            console.error("WebSocket error observed:", event);
+            log('Error: ' + event.data);
+        };
+
+        ws.onclose = function () {
+            document.getElementById("input").style.backgroundColor = "red";
+            log('Connection closed');
+        };
+    } else {
+        // The browser doesn't support WebSocket
+        alert("WebSocket NOT supported by your Browser!");
+    }
+}
+
+function log(line) {
+    document.getElementById('log').innerHTML = document.getElementById('log').innerHTML + line + '\n';
+    document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+}
+
+function clearLog() {
+    document.getElementById('log').innerHTML = '';
+}
+
+// used by manual command on GUI
+function sendMessage() {
+    if(ws != null){
+        ws.send(document.getElementById('input').value);
+    }
+    log('Tx: '+document.getElementById('input').value);
+    document.getElementById('input').value = '';
+}
+
+function sentCommand(command){
+    if(ws != null){
+        ws.send(command);
+    }
+    log('Tx: '+command);
+}
 
 function combo(thelist) {
     let idx = thelist.selectedIndex;
@@ -46,16 +111,22 @@ function loop() {
     else if (mode == "positions") {
         loop_2(a1);
     }*/
-    if(mode != "manual"){
-        options.shoulderFL = FL_leg.getTheta1()*180/Math.PI;
-        options.shoulderRL = FR_leg.getTheta1()*180/Math.PI;
-        options.shoulderFR = RL_leg.getTheta1()*180/Math.PI;
-        options.shoulderRR = RR_leg.getTheta1()*180/Math.PI;
-        options.kneeFL = FL_leg.getTheta2()*180/Math.PI;
-        options.kneeRL = FR_leg.getTheta2()*180/Math.PI;
-        options.kneeFR = RL_leg.getTheta2()*180/Math.PI;
-        options.kneeRR = RR_leg.getTheta2()*180/Math.PI;
+    if (mode != "manual") {
+        options.shoulderFL = FL_leg.getTheta1() * 180 / Math.PI;
+        options.shoulderRL = FR_leg.getTheta1() * 180 / Math.PI;
+        options.shoulderFR = RL_leg.getTheta1() * 180 / Math.PI;
+        options.shoulderRR = RR_leg.getTheta1() * 180 / Math.PI;
+        options.kneeFL = FL_leg.getTheta2() * 180 / Math.PI;
+        options.kneeRL = FR_leg.getTheta2() * 180 / Math.PI;
+        options.kneeFR = RL_leg.getTheta2() * 180 / Math.PI;
+        options.kneeRR = RR_leg.getTheta2() * 180 / Math.PI;
     }
+}
+
+function calcCommand(leg){
+    cmd = "SERVO;"+leg.name+";"+ Math.round(leg.getTheta1() * 180 / Math.PI)+";"+ Math.round(leg.getTheta2() * 180 / Math.PI)+";";
+    //log(cmd);
+    sentCommand(cmd);
 }
 
 function moveNext(leg, target_x, target_y) {
@@ -64,28 +135,29 @@ function moveNext(leg, target_x, target_y) {
     //y = Math.round(leg.Y2);
     x = leg.X2;
     y = leg.Y2;
-    if (x < target_x){
-        if((target_x-x) > DX) dx = DX;
-        else dx = target_x-x;
+    if (x < target_x) {
+        if ((target_x - x) > DX) dx = DX;
+        else dx = target_x - x;
     }
     else if (x > target_x) {
-        if((x-target_x) >= DX) dx = -DX;
-        else dx = -(x-target_x);
+        if ((x - target_x) >= DX) dx = -DX;
+        else dx = -(x - target_x);
     }
     //else console.log("x on target");
     if (y < target_y) {
-        if((target_y-y) > DY) dy = DY;
-        else dy = target_y-y;
+        if ((target_y - y) > DY) dy = DY;
+        else dy = target_y - y;
     }
     else if (y > target_y) {
-        if((y-target_y) >= DY) dy = -DY;
-        else dy = -(y-target_y);
+        if ((y - target_y) >= DY) dy = -DY;
+        else dy = -(y - target_y);
     }
     //else console.log("y on target");
     if ((dx != 0) || (dy != 0)) {
         //console.log(x, y, target_x, target_y, dx, dy);
         leg.setTarget(x + dx, y + dy);
         leg.calcInverseKinematics();
+        calcCommand(leg);
     }
 }
 
@@ -94,7 +166,7 @@ function sit() {
     moveNext(FR_leg, 0, 0);
     moveNext(RL_leg, 0, 0);
     moveNext(RR_leg, 0, 0);
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
 }
 
 function stand() {
@@ -102,10 +174,10 @@ function stand() {
     moveNext(FR_leg, 0, 20);
     moveNext(RL_leg, 0, 20);
     moveNext(RR_leg, 0, 20);
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
 }
 
-function manual(){
+function manual() {
     FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
     FL_leg.setTheta2(options.kneeFL * Math.PI / 180);
     FL_leg.calcForwardKinematics();
@@ -121,7 +193,7 @@ function manual(){
     RR_leg.setTheta1(options.shoulderRR * Math.PI / 180);
     RR_leg.setTheta2(options.kneeRR * Math.PI / 180);
     RR_leg.calcForwardKinematics();
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
 }
 
 // Angle swipe loop (forward kinematic)
@@ -149,7 +221,7 @@ function loop_1() {
     RR_leg.setTheta2(a2 * Math.PI / 180);
     RR_leg.calcForwardKinematics();
 
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
 }
 
 // Position change (inverse kinematic)
@@ -168,12 +240,12 @@ function loop_2(step) {
 
     RR_leg.setTarget(x, y);
     RR_leg.calcInverseKinematics();
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
     a1 += dir;
     if ((a1 == 30) || (a1 == 0)) dir = -dir;
 }
 
-function moveBezier(step){
+function moveBezier(step) {
     let pos;
     pos = FL_leg.getBezierXY(a1 / 10);
     moveNext(FL_leg, pos.x, pos.y);
@@ -183,7 +255,7 @@ function moveBezier(step){
     moveNext(RL_leg, pos.x, pos.y);
     pos = RR_leg.getBezierXY(a1 / 10);
     moveNext(RR_leg, pos.x, pos.y);
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
     a1 += dir;
     if ((a1 == 10) || (a1 == 0)) {
         dir = -dir;
@@ -208,7 +280,7 @@ function loop_3(step) {
     RR_leg.setPath(a1 / 10);
     RR_leg.calcInverseKinematics();
 
-    if(SIM_2D == 1) drawRobot();
+    if (SIM_2D == 1) drawRobot();
     a1 += dir;
     if ((a1 == 10) || (a1 == 0)) {
         dir = -dir;
