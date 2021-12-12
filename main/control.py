@@ -80,8 +80,8 @@ class control(Thread):
         data = cmd.split(';')
         if(data[0] == "SERVO"):
             self.servos.setServoAngle(data[1], "hip", 0)
-            self.servos.setServoAngle(data[1], "shoulder", int(data[2]))
-            self.servos.setServoAngle(data[1], "knee", int(data[3]))
+#            self.servos.setServoAngle(data[1], "shoulder", int(data[2]))
+#            self.servos.setServoAngle(data[1], "knee", int(data[3]))
         elif(data[0] == "RESET"):
             self.servos.close()
 
