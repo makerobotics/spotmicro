@@ -9,7 +9,7 @@ const EY = 25;
    Bottom leg length:        L2 
    Top leg angle:            theta1
    Bottom leg angle:         theta2 */
-function leg(name, L1, L2, theta1, theta2, longPos, latPos){
+function leg(name, L1, L2, theta1, theta2, theta3, longPos, latPos){
    this.name = name;
    this.L1 = L1;
    this.L2 = L2;
@@ -17,6 +17,7 @@ function leg(name, L1, L2, theta1, theta2, longPos, latPos){
    this.Y2 = 0;
    this.theta1 = theta1;
    this.theta2 = theta2;
+   this.theta3 = theta3;
    this.longPos = longPos;
    this.latPos = latPos;
    this.direction = 1;
@@ -39,6 +40,10 @@ leg.prototype.setTheta1 = function(angle){
 
 leg.prototype.setTheta2 = function(angle){
    this.theta2 = angle;
+};
+
+leg.prototype.setTheta3 = function(angle){
+   this.theta3 = angle;
 };
 
 leg.prototype.setTarget = function(x, y){
@@ -109,6 +114,11 @@ leg.prototype.getTheta1 = function(){
    return this.theta1;
 };
 
+leg.prototype.getTheta3 = function(){
+   // only for manual control
+   return this.theta3;
+};
+
 // High level API
 leg.prototype.calcForwardKinematics = function(){
    this.getX1();this.getY1();this.getZ1();
@@ -133,7 +143,7 @@ leg.prototype.getBezierXY = function(t) {
 
 // Debug output
 leg.prototype.printData = function(){
-   console.log("theta1: "+Math.ceil(this.theta1*180/Math.PI)+", theta2: "+Math.ceil(this.theta2*180/Math.PI));
+   console.log("theta1: "+Math.ceil(this.theta1*180/Math.PI)+", theta2: "+Math.ceil(this.theta2*180/Math.PI)+", theta3: "+Math.ceil(this.theta3*180/Math.PI));
    console.log("X1: "+Math.ceil(this.X1)+", Y1: "+Math.ceil(this.Y1));
    console.log("X2: "+Math.ceil(this.X2)+", Y2: "+Math.ceil(this.Y2));
 };

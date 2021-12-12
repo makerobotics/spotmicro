@@ -120,11 +120,15 @@ function loop() {
         options.kneeRL = FR_leg.getTheta2() * 180 / Math.PI;
         options.kneeFR = RL_leg.getTheta2() * 180 / Math.PI;
         options.kneeRR = RR_leg.getTheta2() * 180 / Math.PI;
+        options.hipFL = FL_leg.getTheta3() * 180 / Math.PI;
+        options.hipRL = FR_leg.getTheta3() * 180 / Math.PI;
+        options.hipFR = RL_leg.getTheta3() * 180 / Math.PI;
+        options.hipRR = RR_leg.getTheta3() * 180 / Math.PI;
     }
 }
 
 function calcCommand(leg){
-    cmd = "SERVO;"+leg.name+";"+ Math.round(leg.getTheta1() * 180 / Math.PI)+";"+ Math.round(leg.getTheta2() * 180 / Math.PI)+";";
+    cmd = "SERVO;"+leg.name+";"+ Math.round(leg.getTheta1() * 180 / Math.PI)+";"+ Math.round(leg.getTheta2() * 180 / Math.PI)+";"+ Math.round(leg.getTheta3() * 180 / Math.PI);
     //log(cmd);
     sentCommand(cmd);
 }
@@ -180,18 +184,22 @@ function stand() {
 function manual() {
     FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
     FL_leg.setTheta2(options.kneeFL * Math.PI / 180);
+    FL_leg.setTheta3(options.hipFL * Math.PI / 180);
     FL_leg.calcForwardKinematics();
 
     RL_leg.setTheta1(options.shoulderRL * Math.PI / 180);
     RL_leg.setTheta2(options.kneeRL * Math.PI / 180);
+    RL_leg.setTheta3(options.hipRL * Math.PI / 180);
     RL_leg.calcForwardKinematics();
 
     FR_leg.setTheta1(options.shoulderFR * Math.PI / 180);
     FR_leg.setTheta2(options.kneeFR * Math.PI / 180);
+    FR_leg.setTheta3(options.hipFR * Math.PI / 180);
     FR_leg.calcForwardKinematics();
 
     RR_leg.setTheta1(options.shoulderRR * Math.PI / 180);
     RR_leg.setTheta2(options.kneeRR * Math.PI / 180);
+    RR_leg.setTheta3(options.hipRR * Math.PI / 180);
     RR_leg.calcForwardKinematics();
     if (SIM_2D == 1) drawRobot();
 }

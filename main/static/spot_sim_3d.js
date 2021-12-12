@@ -7,11 +7,10 @@ const LEG_LENGTH = 20;
 const LONG_LEG_DISTANCE = 40, LAT_LEG_DISTANCE = 10;
 const axesHelper = new THREE.AxesHelper( 50 );
 
-let FL_leg = new leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2);
-let RL_leg = new leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2);
-let FR_leg = new leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2);
-let RR_leg = new leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2);
-
+let FL_leg = new leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2);
+let RL_leg = new leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2);
+let FR_leg = new leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2);
+let RR_leg = new leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2);
 
 // Camera
 let camera = new THREE.PerspectiveCamera( 60, aspect, 0.1, 1000 );
@@ -44,7 +43,7 @@ let kneeFL = new THREE.Object3D();
 let kneeFR = new THREE.Object3D();
 let kneeRL = new THREE.Object3D();
 let kneeRR = new THREE.Object3D();
-  
+
 drawLeg(shoulderFL, kneeFL, FL_leg);
 drawLeg(shoulderFR, kneeFR, FR_leg);
 drawLeg(shoulderRL, kneeRL, RL_leg);
@@ -129,6 +128,10 @@ let options = {
   kneeFR: 120,
   kneeRL: 120,
   kneeRR: 120,
+  hipFL: 0,
+  hipFR: 0,
+  hipRL: 0,
+  hipRR: 0,
 };
 // DAT.GUI Related Stuff
 let gui = new dat.GUI();
@@ -141,6 +144,10 @@ gui.add(options, 'kneeFL', 0, 180).listen();
 gui.add(options, 'kneeFR', 0, 180).listen();
 gui.add(options, 'kneeRL', 0, 180).listen();
 gui.add(options, 'kneeRR', 0, 180).listen();
+gui.add(options, 'hipFL', -90, 90).listen();
+gui.add(options, 'hipFR', -90, 90).listen();
+gui.add(options, 'hipRL', -90, 90).listen();
+gui.add(options, 'hipRR', -90, 90).listen();
 
 // Rendering
 let xAxis = new THREE.Vector3(1, 0, 0);
