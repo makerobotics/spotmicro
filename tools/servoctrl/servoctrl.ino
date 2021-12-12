@@ -2,6 +2,7 @@
 #include <RotaryEncoder.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <ESP32Servo.h>//#include <Servo.h>
 #include <EEPROM.h>
 #include "BluetoothSerial.h"
 
@@ -9,6 +10,7 @@
 #define PIN_IN1 16
 #define PIN_IN2 17
 #define PIN_IN3 26 // button
+#define SERVO_PIN 19
 #define MAX_PRESSED 20
 #define LONG_PRESS  1500000
 #define VERY_LONG_PRESS  10000000
@@ -16,17 +18,27 @@
 #define BTN_PRESSED   1
 #define BTN_DEBOUNCE  2
 #define STEP          1 // function is called twice per rotary actuation
-#define SERVOMIN  50
-#define SERVOMAX  900
 #define MAX_SERVO_NUM 12
 #define EEPROM_SIZE MAX_SERVO_NUM*4
 
+#define PCA9685   0
+#if PCA9685
+  #define SERVOMIN  50
+  #define SERVOMAX  900
+#else
+  #define SERVOMIN  500
+  #define SERVOMAX  2500
+#endif
 // Setup a RotaryEncoder with 4 steps per latch for the 2 signal input pins:
 // RotaryEncoder encoder(PIN_IN1, PIN_IN2, RotaryEncoder::LatchMode::FOUR3);
 
 // Setup a RotaryEncoder with 2 steps per latch for the 2 signal input pins:
 RotaryEncoder encoder(PIN_IN1, PIN_IN2, RotaryEncoder::LatchMode::TWO03);
-Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+#if PCA9685
+  Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+#else
+  Servo myservo;  // create servo object to control a servo
+#endif
 BluetoothSerial SerialBT;
 
 int clicked = 0;
@@ -147,15 +159,23 @@ void setup()
   while (! Serial);
   pinMode(PIN_IN3, INPUT_PULLUP);
   pinMode(BUILTINLED, OUTPUT);
-
+  
   SerialBT.begin("servotest"); // bluetooth device name
   
   //Init EEPROM
   EEPROM.begin(EEPROM_SIZE);
   readEEPROM();
 
+  log("Started", 0);
+#if PCA9685
   pwm1.begin();
   pwm1.setPWMFreq(60);  // This is the maximum PWM frequency
+#else
+  myservo.attach(SERVO_PIN, SERVOMIN, SERVOMAX);  // attaches the servo (redefine ranges s they were changed in ESP8266 V3.0.0)
+  servoPos[servonum] = (SERVOMAX+SERVOMIN)/2;
+  myservo.writeMicroseconds((SERVOMAX+SERVOMIN)/2);
+#endif
+
 } // setup()
 
 
@@ -180,7 +200,10 @@ void loop()
     if(servoPos[servonum] > servoPosMax[servonum]) servoPos[servonum] = servoPosMax[servonum];
 
     log(" Servo position: ", servoPos[servonum]);
+  #if PCA9685
     pwm1.setPWM(servonum, 0, servoPos[servonum]);   
+  #endif
+    myservo.writeMicroseconds(servoPos[servonum]);
   } // if
 
   int btnEvent = handlePushButton();
