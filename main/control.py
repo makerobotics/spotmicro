@@ -28,7 +28,7 @@ class control(Thread):
             self.initTrace()
         self.servos = servos.servos()
         self.initialPosition()
-        
+
     def initTrace(self):
         if(self.TRACE == 1):
             self.tracefile = open("trace.csv","w+")
@@ -37,7 +37,7 @@ class control(Thread):
                 header += k+";"
             header += "\r\n"
             self.tracefile.write(header)
-            
+
     def writeTrace(self):
         if (self.TRACE == 1):
             if self.traceline == 0:
@@ -60,7 +60,7 @@ class control(Thread):
         if self.TRACE == 1 and self.tracefile != None:
             self.tracefile.close()
         self.servos.close()
-        
+
     def idleTask(self):
         pass
         #print("."),
@@ -74,7 +74,7 @@ class control(Thread):
         time.sleep(0.5)
         self.servos.setServoAngle("RR", "hip", 0)
         time.sleep(0.5)
-        
+
     def runCommand(self, cmd):
         logger.debug("Control thread received command: " + cmd)
         data = cmd.split(';')
@@ -87,11 +87,11 @@ class control(Thread):
 
     def run(self):
         logger.debug('Control thread running')
-        while self._running: 
+        while self._running:
             time.sleep(0.05)
             ### Wait for command (call of runCommand by rpibot.py)
             self.idleTask()
-        self.close() 
+        self.close()
         logger.debug('Control thread terminating')
 
     def stop(self, reason):
@@ -104,19 +104,19 @@ if __name__ == '__main__':
         logger.info("Started main")
         #s = sense.sense()
         #s.start()
-        c = control() 
+        c = control()
         c.start()
         time.sleep(2)
         c.stop("Test")
     except KeyboardInterrupt:
-        # Signal termination 
+        # Signal termination
         logger.info("Keyboard interrupt. Terminate thread")
     finally:
         c.terminate()
         #s.terminate()
         logger.debug("Thread terminated")
 
-        # Wait for actual termination (if needed)  
+        # Wait for actual termination (if needed)
         c.join()
         #s.join()
         logger.debug("Thread finished")
