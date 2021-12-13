@@ -214,9 +214,9 @@ function manual() {
 
     // Todo: use variables instead of function for time improvement
     moveNext(FL_leg, FL_leg.getX2(), FL_leg.getY2(), options.hipFL*Math.PI/180);
-    moveNext(RL_leg, RL_leg.getX2(), RL_leg.getY2(), 0);
-    moveNext(FR_leg, FR_leg.getX2(), FR_leg.getY2(), 0);
-    moveNext(RR_leg, RR_leg.getX2(), RR_leg.getY2(), 0);
+    moveNext(RL_leg, RL_leg.getX2(), RL_leg.getY2(), options.hipRL*Math.PI/180);
+    moveNext(FR_leg, FR_leg.getX2(), FR_leg.getY2(), options.hipFR*Math.PI/180);
+    moveNext(RR_leg, RR_leg.getX2(), RR_leg.getY2(), options.hipRR*Math.PI/180);
     if (SIM_2D == 1) drawRobot();
 }
 
