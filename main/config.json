@@ -50,7 +50,7 @@
         "hip": {
           "id": 5,
           "min_angle_pwm": 650,
-          "max_angle_pwm": 200,
+          "max_angle_pwm": 110,
           "min_angle": -90,
           "max_angle": 90,
           "min_pwm": 150,
@@ -79,7 +79,7 @@
         "hip": {
           "id": 8,
           "min_angle_pwm": 200,
-          "max_angle_pwm": 650,
+          "max_angle_pwm": 750,
           "min_angle": -90,
           "max_angle": 90,
           "min_pwm": 50,
@@ -108,7 +108,7 @@
         "hip": {
           "id": 11,
           "min_angle_pwm": 200,
-          "max_angle_pwm": 650,
+          "max_angle_pwm": 760,
           "min_angle": -90,
           "max_angle": 90,
           "min_pwm": 50,
