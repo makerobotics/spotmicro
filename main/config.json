@@ -54,7 +54,7 @@
           "min_angle": -90,
           "max_angle": 90,
           "min_pwm": 150,
-          "max_pwm": 580
+          "max_pwm": 650
         }
       },
       "FR": {

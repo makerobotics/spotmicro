@@ -9,7 +9,7 @@ if SERVO:
     import Adafruit_PCA9685 # for PC simulation
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 class servos():
 
@@ -68,6 +68,7 @@ class servos():
         logger.debug("Leg: "+leg+", Joint: "+joint+", Angle: "+str(angle) + ", PWM: " + str(p))
 
     def close(self):
+        logger.info("Closed servos")
         if SERVO:
             for i in range(12):
                 self.pwm.set_pwm(i, 0, 4096)
