@@ -1,5 +1,5 @@
 const REFRESH = 100;
-const DX = 1, DY = 1;
+const DX = 1, DY = 1, DZ = 1;
 const SIM_2D = 0;
 
 let a1 = 0, a2 = 0;
