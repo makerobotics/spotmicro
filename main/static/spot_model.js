@@ -15,6 +15,7 @@ function leg(name, L1, L2, theta1, theta2, theta3, longPos, latPos){
    this.L2 = L2;
    this.X2 = 0;
    this.Y2 = 0;
+   this.Z2 = 0;
    this.theta1 = theta1;
    this.theta2 = theta2;
    this.theta3 = theta3;
@@ -46,9 +47,11 @@ leg.prototype.setTheta3 = function(angle){
    this.theta3 = angle;
 };
 
-leg.prototype.setTarget = function(x, y){
+leg.prototype.setTarget = function(x, y, z){
    this.X2 = x;
    this.Y2 = y;
+   this.Z2 = z;
+   this.theta3 = z; // Debug only in manual mode
 }
 
 leg.prototype.setPath = function(t){
@@ -97,7 +100,6 @@ leg.prototype.getY2 = function(){
 };
 
 leg.prototype.getZ2 = function(){
-   this.Z2 = 0;
    return this.Z2;
 };
 

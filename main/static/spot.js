@@ -133,12 +133,13 @@ function calcCommand(leg){
     sentCommand(cmd);
 }
 
-function moveNext(leg, target_x, target_y) {
-    let x, y, dx = 0, dy = 0;
+function moveNext(leg, target_x, target_y, target_z) {
+    let x, y, z, dx = 0, dy = 0, dz = 0;
     //x = Math.round(leg.X2);
     //y = Math.round(leg.Y2);
     x = leg.X2;
     y = leg.Y2;
+    z = leg.Z2;
     if (x < target_x) {
         if ((target_x - x) > DX) dx = DX;
         else dx = target_x - x;
@@ -157,50 +158,65 @@ function moveNext(leg, target_x, target_y) {
         else dy = -(y - target_y);
     }
     //else console.log("y on target");
-    if ((dx != 0) || (dy != 0)) {
+    if (z < target_z) {
+        if ((target_z - z) > DZ) dz = DZ;
+        else dz = target_z - z;
+    }
+    else if (z > target_z) {
+        if ((z - target_z) >= DZ) dz = -DZ;
+        else dz = -(z - target_z);
+    }
+    //else console.log("z on target");
+    if ((dx != 0) || (dy != 0) || (dz != 0)) {
         //console.log(x, y, target_x, target_y, dx, dy);
-        leg.setTarget(x + dx, y + dy);
+        leg.setTarget(x + dx, y + dy, z + dz);
         leg.calcInverseKinematics();
         calcCommand(leg);
     }
 }
 
 function sit() {
-    moveNext(FL_leg, 0, 0);
-    moveNext(FR_leg, 0, 0);
-    moveNext(RL_leg, 0, 0);
-    moveNext(RR_leg, 0, 0);
+    moveNext(FL_leg, 0, 0, 0);
+    moveNext(FR_leg, 0, 0, 0);
+    moveNext(RL_leg, 0, 0, 0);
+    moveNext(RR_leg, 0, 0, 0);
     if (SIM_2D == 1) drawRobot();
 }
 
 function stand() {
-    moveNext(FL_leg, 0, 20);
-    moveNext(FR_leg, 0, 20);
-    moveNext(RL_leg, 0, 20);
-    moveNext(RR_leg, 0, 20);
+    moveNext(FL_leg, 0, 20, 0);
+    moveNext(FR_leg, 0, 20, 0);
+    moveNext(RL_leg, 0, 20, 0);
+    moveNext(RR_leg, 0, 20, 0);
     if (SIM_2D == 1) drawRobot();
 }
 
 function manual() {
     FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
     FL_leg.setTheta2(options.kneeFL * Math.PI / 180);
-    FL_leg.setTheta3(options.hipFL * Math.PI / 180);
+    //FL_leg.setTheta3(options.hipFL * Math.PI / 180);
     FL_leg.calcForwardKinematics();
 
     RL_leg.setTheta1(options.shoulderRL * Math.PI / 180);
     RL_leg.setTheta2(options.kneeRL * Math.PI / 180);
-    RL_leg.setTheta3(options.hipRL * Math.PI / 180);
+    //RL_leg.setTheta3(options.hipRL * Math.PI / 180);
     RL_leg.calcForwardKinematics();
 
     FR_leg.setTheta1(options.shoulderFR * Math.PI / 180);
     FR_leg.setTheta2(options.kneeFR * Math.PI / 180);
-    FR_leg.setTheta3(options.hipFR * Math.PI / 180);
+    //FR_leg.setTheta3(options.hipFR * Math.PI / 180);
     FR_leg.calcForwardKinematics();
 
     RR_leg.setTheta1(options.shoulderRR * Math.PI / 180);
     RR_leg.setTheta2(options.kneeRR * Math.PI / 180);
-    RR_leg.setTheta3(options.hipRR * Math.PI / 180);
+    //RR_leg.setTheta3(options.hipRR * Math.PI / 180);
     RR_leg.calcForwardKinematics();
+
+    // Todo: use variables instead of function for time improvement
+    moveNext(FL_leg, FL_leg.getX2(), FL_leg.getY2(), options.hipFL*Math.PI/180);
+    moveNext(RL_leg, RL_leg.getX2(), RL_leg.getY2(), 0);
+    moveNext(FR_leg, FR_leg.getX2(), FR_leg.getY2(), 0);
+    moveNext(RR_leg, RR_leg.getX2(), RR_leg.getY2(), 0);
     if (SIM_2D == 1) drawRobot();
 }
 
@@ -236,17 +252,18 @@ function loop_1() {
 function loop_2(step) {
     let x = 0;
     let y = step;
+    let z = 0;
     // test inverse kenematics
-    FL_leg.setTarget(x, y);
+    FL_leg.setTarget(x, y, z);
     FL_leg.calcInverseKinematics();
 
-    FR_leg.setTarget(x, y);
+    FR_leg.setTarget(x, y, z);
     FR_leg.calcInverseKinematics();
 
-    RL_leg.setTarget(x, y);
+    RL_leg.setTarget(x, y, z);
     RL_leg.calcInverseKinematics();
 
-    RR_leg.setTarget(x, y);
+    RR_leg.setTarget(x, y, z);
     RR_leg.calcInverseKinematics();
     if (SIM_2D == 1) drawRobot();
     a1 += dir;
@@ -256,13 +273,13 @@ function loop_2(step) {
 function moveBezier(step) {
     let pos;
     pos = FL_leg.getBezierXY(a1 / 10);
-    moveNext(FL_leg, pos.x, pos.y);
+    moveNext(FL_leg, pos.x, pos.y, 0);
     pos = FR_leg.getBezierXY(a1 / 10);
-    moveNext(FR_leg, pos.x, pos.y);
+    moveNext(FR_leg, pos.x, pos.y, 0);
     pos = RL_leg.getBezierXY(a1 / 10);
-    moveNext(RL_leg, pos.x, pos.y);
+    moveNext(RL_leg, pos.x, pos.y, 0);
     pos = RR_leg.getBezierXY(a1 / 10);
-    moveNext(RR_leg, pos.x, pos.y);
+    moveNext(RR_leg, pos.x, pos.y, 0);
     if (SIM_2D == 1) drawRobot();
     a1 += dir;
     if ((a1 == 10) || (a1 == 0)) {
