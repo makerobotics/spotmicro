@@ -86,6 +86,7 @@ class control(Thread):
             self.servos.close()
         elif(data[0] == "CONFIG"):
             self.servos.readServosConfig()
+            self.initialPosition()
 
     def run(self):
         logger.debug('Control thread running')
