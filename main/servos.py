@@ -17,7 +17,8 @@ class servos():
         if SERVO:
             self.pwm = Adafruit_PCA9685.PCA9685()
             self.pwm.set_pwm_freq(60)
-        self.sc = self.readServosConfig()
+        self.sc = None
+        self.readServosConfig()
         self.pwms = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.angles = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         logger.info("Started servo class")
@@ -29,7 +30,7 @@ class servos():
         data = json.load(f)
         # Closing file
         f.close()
-        return data
+        self.sc = data
 
     def getChannel(self, leg, joint):
         return self.sc[leg][joint]["id"]

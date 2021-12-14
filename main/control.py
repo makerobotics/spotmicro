@@ -84,6 +84,8 @@ class control(Thread):
             self.servos.setServoAngle(data[1], "hip", int(data[4]))
         elif(data[0] == "RESET"):
             self.servos.close()
+        elif(data[0] == "CONFIG"):
+            self.servos.readServosConfig()
 
     def run(self):
         logger.debug('Control thread running')
