@@ -175,6 +175,49 @@ function moveNext(leg, target_x, target_y, target_z) {
     }
 }
 
+function moveNextAngle(leg, target_x, target_y, target_z) {
+    let x, y, z, dx = 0, dy = 0, dz = 0;
+    x = leg.theta1;
+    y = leg.theta2;
+    z = leg.theta3;
+    if (x < target_x) {
+        if ((target_x - x) > DX) dx = DX;
+        else dx = target_x - x;
+    }
+    else if (x > target_x) {
+        if ((x - target_x) >= DX) dx = -DX;
+        else dx = -(x - target_x);
+    }
+    //else console.log("x on target");
+    if (y < target_y) {
+        if ((target_y - y) > DY) dy = DY;
+        else dy = target_y - y;
+    }
+    else if (y > target_y) {
+        if ((y - target_y) >= DY) dy = -DY;
+        else dy = -(y - target_y);
+    }
+    //else console.log("y on target");
+    if (z < target_z) {
+        if ((target_z - z) > DZ) dz = DZ;
+        else dz = target_z - z;
+    }
+    else if (z > target_z) {
+        if ((z - target_z) >= DZ) dz = -DZ;
+        else dz = -(z - target_z);
+    }
+    //else console.log("z on target");
+    if ((dx != 0) || (dy != 0) || (dz != 0)) {
+        //console.log(x, y, target_x, target_y, dx, dy);
+        leg.setTheta1(x + dx);
+        leg.setTheta2(y + dy);
+        leg.calcForwardKinematics();
+        leg.setTarget(leg.getX2(), leg.getY2(), z + dz);
+        leg.calcInverseKinematics();
+        calcCommand(leg);
+    }
+}
+
 function sit() {
     moveNext(FL_leg, 0, 0, 0);
     moveNext(FR_leg, 0, 0, 0);
@@ -192,7 +235,7 @@ function stand() {
 }
 
 function manual() {
-    FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
+    /*FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
     FL_leg.setTheta2(options.kneeFL * Math.PI / 180);
     //FL_leg.setTheta3(options.hipFL * Math.PI / 180);
     FL_leg.calcForwardKinematics();
@@ -211,12 +254,12 @@ function manual() {
     RR_leg.setTheta2(options.kneeRR * Math.PI / 180);
     //RR_leg.setTheta3(options.hipRR * Math.PI / 180);
     RR_leg.calcForwardKinematics();
-
+*/
     // Todo: use variables instead of function for time improvement
-    moveNext(FL_leg, FL_leg.getX2(), FL_leg.getY2(), options.hipFL*Math.PI/180);
-    moveNext(RL_leg, RL_leg.getX2(), RL_leg.getY2(), options.hipRL*Math.PI/180);
-    moveNext(FR_leg, FR_leg.getX2(), FR_leg.getY2(), options.hipFR*Math.PI/180);
-    moveNext(RR_leg, RR_leg.getX2(), RR_leg.getY2(), options.hipRR*Math.PI/180);
+    moveNextAngle(FL_leg, options.kneeFL * Math.PI / 180, options.shoulderFL * Math.PI / 180, options.hipFL*Math.PI/180);
+    moveNextAngle(RL_leg, options.kneeRL * Math.PI / 180, options.shoulderRL * Math.PI / 180, options.hipRL*Math.PI/180);
+    moveNextAngle(FR_leg, options.kneeFR * Math.PI / 180, options.shoulderFR * Math.PI / 180, options.hipFR*Math.PI/180);
+    moveNextAngle(RR_leg, options.kneeRR * Math.PI / 180, options.shoulderRR * Math.PI / 180, options.hipRR*Math.PI/180);
     if (SIM_2D == 1) drawRobot();
 }
 
