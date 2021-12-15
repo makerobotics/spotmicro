@@ -4,7 +4,7 @@ import os
 import time
 import logging
 import json
-SERVO = 1
+SERVO = 0
 if SERVO:
     import Adafruit_PCA9685 # for PC simulation
 

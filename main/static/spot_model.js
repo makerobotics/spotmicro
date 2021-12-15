@@ -8,7 +8,10 @@ const EY = 25;
    Top leg length:           L1
    Bottom leg length:        L2 
    Top leg angle:            theta1
-   Bottom leg angle:         theta2 */
+   Bottom leg angle:         theta2 
+   
+   In this module, all angles are in rad
+*/
 function leg(name, L1, L2, theta1, theta2, theta3, longPos, latPos){
    this.name = name;
    this.L1 = L1;
@@ -51,7 +54,12 @@ leg.prototype.setTarget = function(x, y, z){
    this.X2 = x;
    this.Y2 = y;
    this.Z2 = z;
-   this.theta3 = z; // Debug only in manual mode
+}
+
+leg.prototype.setTargetAngles = function(theta1, theta2, theta3){
+   this.theta1 = theta1;
+   this.theta2 = theta2;
+   this.theta3 = theta3;
 }
 
 leg.prototype.setPath = function(t){
@@ -121,15 +129,17 @@ leg.prototype.getTheta3 = function(){
    return this.theta3;
 };
 
-// High level API
+// High level API: get the joint positions out of the angles
 leg.prototype.calcForwardKinematics = function(){
    this.getX1();this.getY1();this.getZ1();
    this.getX2();this.getY2();this.getZ2();
 }
 
+// High level API: get the servo angles out of the joint positions
 leg.prototype.calcInverseKinematics = function(){
    this.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
    this.getTheta1();
+   // Calculate intermediate joint
    this.getX1();this.getY1();this.getZ1();this.getZ2(); // Z mandatory to avoid NAN in calc
 }
 

@@ -177,9 +177,11 @@ function moveNext(leg, target_x, target_y, target_z) {
 
 function moveNextAngle(leg, target_x, target_y, target_z) {
     let x, y, z, dx = 0, dy = 0, dz = 0;
-    x = leg.theta1;
-    y = leg.theta2;
-    z = leg.theta3;
+    x = Math.ceil(leg.theta1 * 180 / Math.PI); // shoulder
+    y = Math.ceil(leg.theta2 * 180 / Math.PI); // knee
+    z = Math.ceil(leg.theta3 * 180 / Math.PI); // hip
+    //console.log(leg.name, x, y, z, target_x, target_y, target_z);
+        
     if (x < target_x) {
         if ((target_x - x) > DX) dx = DX;
         else dx = target_x - x;
@@ -208,12 +210,12 @@ function moveNextAngle(leg, target_x, target_y, target_z) {
     }
     //else console.log("z on target");
     if ((dx != 0) || (dy != 0) || (dz != 0)) {
-        //console.log(x, y, target_x, target_y, dx, dy);
-        leg.setTheta1(x + dx);
-        leg.setTheta2(y + dy);
+        console.log(x, y, z, target_x, target_y, target_z, dx, dy, dz);
+        console.log((x + dx));
+        leg.setTheta1((x + dx) * Math.PI / 180);
+        leg.setTheta2((y + dy) * Math.PI / 180);
+        leg.setTheta3((z + dz) * Math.PI / 180);
         leg.calcForwardKinematics();
-        leg.setTarget(leg.getX2(), leg.getY2(), z + dz);
-        leg.calcInverseKinematics();
         calcCommand(leg);
     }
 }
@@ -235,31 +237,11 @@ function stand() {
 }
 
 function manual() {
-    /*FL_leg.setTheta1(options.shoulderFL * Math.PI / 180);
-    FL_leg.setTheta2(options.kneeFL * Math.PI / 180);
-    //FL_leg.setTheta3(options.hipFL * Math.PI / 180);
-    FL_leg.calcForwardKinematics();
-
-    RL_leg.setTheta1(options.shoulderRL * Math.PI / 180);
-    RL_leg.setTheta2(options.kneeRL * Math.PI / 180);
-    //RL_leg.setTheta3(options.hipRL * Math.PI / 180);
-    RL_leg.calcForwardKinematics();
-
-    FR_leg.setTheta1(options.shoulderFR * Math.PI / 180);
-    FR_leg.setTheta2(options.kneeFR * Math.PI / 180);
-    //FR_leg.setTheta3(options.hipFR * Math.PI / 180);
-    FR_leg.calcForwardKinematics();
-
-    RR_leg.setTheta1(options.shoulderRR * Math.PI / 180);
-    RR_leg.setTheta2(options.kneeRR * Math.PI / 180);
-    //RR_leg.setTheta3(options.hipRR * Math.PI / 180);
-    RR_leg.calcForwardKinematics();
-*/
     // Todo: use variables instead of function for time improvement
-    moveNextAngle(FL_leg, options.kneeFL * Math.PI / 180, options.shoulderFL * Math.PI / 180, options.hipFL*Math.PI/180);
-    moveNextAngle(RL_leg, options.kneeRL * Math.PI / 180, options.shoulderRL * Math.PI / 180, options.hipRL*Math.PI/180);
-    moveNextAngle(FR_leg, options.kneeFR * Math.PI / 180, options.shoulderFR * Math.PI / 180, options.hipFR*Math.PI/180);
-    moveNextAngle(RR_leg, options.kneeRR * Math.PI / 180, options.shoulderRR * Math.PI / 180, options.hipRR*Math.PI/180);
+    moveNextAngle(FL_leg, options.shoulderFL, options.kneeFL, options.hipFL);
+    moveNextAngle(RL_leg, options.shoulderRL, options.kneeRL, options.hipRL);
+    moveNextAngle(FR_leg, options.shoulderFR, options.kneeFR, options.hipFR);
+    moveNextAngle(RR_leg, options.shoulderRR, options.kneeRR, options.hipRR);
     if (SIM_2D == 1) drawRobot();
 }
 
@@ -296,7 +278,7 @@ function loop_2(step) {
     let x = 0;
     let y = step;
     let z = 0;
-    // test inverse kenematics
+    // test inverse kinematics
     FL_leg.setTarget(x, y, z);
     FL_leg.calcInverseKinematics();
 
