@@ -128,15 +128,14 @@ function loop() {
 }
 
 function calcCommand(leg){
-    cmd = "SERVO;"+leg.name+";"+ Math.round(leg.getTheta1() * 180 / Math.PI)+";"+ Math.round(leg.getTheta2() * 180 / Math.PI)+";"+ Math.round(leg.getTheta3() * 180 / Math.PI);
+    cmd = "SERVO;"+leg.name+";"+ Math.round(leg.theta1 * 180 / Math.PI)+";"+ Math.round(leg.theta2 * 180 / Math.PI)+";"+ Math.round(leg.theta3 * 180 / Math.PI);
     //log(cmd);
+    //console.log(leg.theta1 * 180 / Math.PI);
     sentCommand(cmd);
 }
 
 function moveNext(leg, target_x, target_y, target_z) {
     let x, y, z, dx = 0, dy = 0, dz = 0;
-    //x = Math.round(leg.X2);
-    //y = Math.round(leg.Y2);
     x = leg.X2;
     y = leg.Y2;
     z = leg.Z2;
@@ -177,9 +176,9 @@ function moveNext(leg, target_x, target_y, target_z) {
 
 function moveNextAngle(leg, target_x, target_y, target_z) {
     let x, y, z, dx = 0, dy = 0, dz = 0;
-    x = Math.ceil(leg.theta1 * 180 / Math.PI); // shoulder
-    y = Math.ceil(leg.theta2 * 180 / Math.PI); // knee
-    z = Math.ceil(leg.theta3 * 180 / Math.PI); // hip
+    x = leg.theta1 * 180 / Math.PI; // shoulder
+    y = leg.theta2 * 180 / Math.PI; // knee
+    z = leg.theta3 * 180 / Math.PI; // hip
     //console.log(leg.name, x, y, z, target_x, target_y, target_z);
         
     if (x < target_x) {
@@ -210,14 +209,16 @@ function moveNextAngle(leg, target_x, target_y, target_z) {
     }
     //else console.log("z on target");
     if ((dx != 0) || (dy != 0) || (dz != 0)) {
-        console.log(x, y, z, target_x, target_y, target_z, dx, dy, dz);
-        console.log((x + dx));
+        console.log(leg.name, x, y, z, target_x, target_y, target_z, dx, dy, dz);
         leg.setTheta1((x + dx) * Math.PI / 180);
         leg.setTheta2((y + dy) * Math.PI / 180);
         leg.setTheta3((z + dz) * Math.PI / 180);
         leg.calcForwardKinematics();
+        //leg.printData();
         calcCommand(leg);
+        //console.log(leg.theta1 * 180 / Math.PI);
     }
+    //console.log(leg.name, leg.theta1 * 180 / Math.PI);
 }
 
 function sit() {
@@ -238,11 +239,15 @@ function stand() {
 
 function manual() {
     // Todo: use variables instead of function for time improvement
+    //console.log("A", FL_leg.theta1 * 180 / Math.PI);
     moveNextAngle(FL_leg, options.shoulderFL, options.kneeFL, options.hipFL);
+    //console.log("B", FL_leg.theta1 * 180 / Math.PI);
     moveNextAngle(RL_leg, options.shoulderRL, options.kneeRL, options.hipRL);
+    //console.log("C", FL_leg.theta1 * 180 / Math.PI);
     moveNextAngle(FR_leg, options.shoulderFR, options.kneeFR, options.hipFR);
     moveNextAngle(RR_leg, options.shoulderRR, options.kneeRR, options.hipRR);
     if (SIM_2D == 1) drawRobot();
+    //console.log("D", FL_leg.theta1 * 180 / Math.PI);
 }
 
 // Angle swipe loop (forward kinematic)
