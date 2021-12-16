@@ -82,65 +82,65 @@ leg.prototype.reversePath = function(t){
 }
 
 // Forward kinematics
-leg.prototype.getX1 = function(){
+leg.prototype.calcX1 = function(){
    this.X1 = this.L1*Math.sin(this.theta1);
    return this.X1;
 };
 
-leg.prototype.getY1 = function(){
+leg.prototype.calcY1 = function(){
    this.Y1 = this.L1*Math.cos(this.theta1);
    return this.Y1;
 };
 
-leg.prototype.getZ1 = function(){
+leg.prototype.calcZ1 = function(){
    this.Z1 = 0;
    return this.Z1;
 };
 
-leg.prototype.getX2 = function(){
+leg.prototype.calcX2 = function(){
    this.X2 = this.L2*Math.cos(Math.PI/2-this.theta1-this.theta2)+this.L1*Math.sin(this.theta1);
    return this.X2;
 };
 
-leg.prototype.getY2 = function(){
+leg.prototype.calcY2 = function(){
    this.Y2 = this.L2*Math.sin(Math.PI/2-this.theta1-this.theta2)+this.L1*Math.cos(this.theta1);
    return this.Y2;
 };
 
-leg.prototype.getZ2 = function(){
+leg.prototype.calcZ2 = function(){
    return this.Z2;
 };
 
 // Inverse kinematics
-leg.prototype.getTheta2 = function(){
+leg.prototype.calcTheta2 = function(){
    this.theta2 = Math.acos((this.X2*this.X2+this.Y2*this.Y2-this.L1*this.L1-this.L2*this.L2)/(2*this.L1*this.L2));
    return this.theta2;
 };
 
-leg.prototype.getTheta1 = function(){
+leg.prototype.calcTheta1 = function(){
    let b=this.L2*Math.sin(this.theta2);
    let c=this.L1+this.L2*Math.cos(this.theta2);
    this.theta1 = Math.atan2(this.X2, this.Y2)-Math.atan2(b,c);
    return this.theta1;
 };
 
-leg.prototype.getTheta3 = function(){
+leg.prototype.calcTheta3 = function(){
    // only for manual control
    return this.theta3;
 };
 
 // High level API: get the joint positions out of the angles
 leg.prototype.calcForwardKinematics = function(){
-   this.getX1();this.getY1();this.getZ1();
-   this.getX2();this.getY2();this.getZ2();
+   this.calcX1();this.calcY1();this.calcZ1();
+   this.calcX2();this.calcY2();this.calcZ2();
 }
 
 // High level API: get the servo angles out of the joint positions
 leg.prototype.calcInverseKinematics = function(){
-   this.getTheta2(); // Mandatory order (theta2 is used to calculate theta1)
-   this.getTheta1();
+   this.calcTheta2(); // Mandatory order (theta2 is used to calculate theta1)
+   this.calcTheta1();
    // Calculate intermediate joint
-   this.getX1();this.getY1();this.getZ1();this.getZ2(); // Z mandatory to avoid NAN in calc
+   this.calcX1();this.calcY1();this.calcZ1();this.calcZ2(); // Z mandatory to avoid NAN in calc
 }
 
 /* http://www.independent-software.com/determining-coordinates-on-a-html-canvas-bezier-curve.html */

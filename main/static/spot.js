@@ -112,18 +112,18 @@ function loop() {
         loop_2(a1);
     }*/
     if (mode != "manual") {
-        options.shoulderFL = FL_leg.getTheta1() * 180 / Math.PI;
-        options.shoulderRL = FR_leg.getTheta1() * 180 / Math.PI;
-        options.shoulderFR = RL_leg.getTheta1() * 180 / Math.PI;
-        options.shoulderRR = RR_leg.getTheta1() * 180 / Math.PI;
-        options.kneeFL = FL_leg.getTheta2() * 180 / Math.PI;
-        options.kneeRL = FR_leg.getTheta2() * 180 / Math.PI;
-        options.kneeFR = RL_leg.getTheta2() * 180 / Math.PI;
-        options.kneeRR = RR_leg.getTheta2() * 180 / Math.PI;
-        options.hipFL = FL_leg.getTheta3() * 180 / Math.PI;
-        options.hipRL = FR_leg.getTheta3() * 180 / Math.PI;
-        options.hipFR = RL_leg.getTheta3() * 180 / Math.PI;
-        options.hipRR = RR_leg.getTheta3() * 180 / Math.PI;
+        options.shoulderFL = FL_leg.calcTheta1() * 180 / Math.PI;
+        options.shoulderRL = FR_leg.calcTheta1() * 180 / Math.PI;
+        options.shoulderFR = RL_leg.calcTheta1() * 180 / Math.PI;
+        options.shoulderRR = RR_leg.calcTheta1() * 180 / Math.PI;
+        options.kneeFL = FL_leg.calcTheta2() * 180 / Math.PI;
+        options.kneeRL = FR_leg.calcTheta2() * 180 / Math.PI;
+        options.kneeFR = RL_leg.calcTheta2() * 180 / Math.PI;
+        options.kneeRR = RR_leg.calcTheta2() * 180 / Math.PI;
+        options.hipFL = FL_leg.calcTheta3() * 180 / Math.PI;
+        options.hipRL = FR_leg.calcTheta3() * 180 / Math.PI;
+        options.hipFR = RL_leg.calcTheta3() * 180 / Math.PI;
+        options.hipRR = RR_leg.calcTheta3() * 180 / Math.PI;
     }
 }
 
