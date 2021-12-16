@@ -159,25 +159,17 @@ let render = function () {
   
   // Rotate joints
   base.setRotationFromAxisAngle(zAxis, options.base * Math.PI / 180)
-  //console.log(FL_leg.getTheta1());
-  shoulderFL.setRotationFromAxisAngle(yAxis, -FL_leg.getTheta1());
-  shoulderFR.setRotationFromAxisAngle(yAxis, -FR_leg.getTheta1());
-  shoulderRL.setRotationFromAxisAngle(yAxis, -RL_leg.getTheta1());
-  shoulderRR.setRotationFromAxisAngle(yAxis, -RR_leg.getTheta1());
-  kneeFL.setRotationFromAxisAngle(yAxis, -FL_leg.getTheta2());
-  kneeFR.setRotationFromAxisAngle(yAxis, -FR_leg.getTheta2());
-  kneeRL.setRotationFromAxisAngle(yAxis, -RL_leg.getTheta2());
-  kneeRR.setRotationFromAxisAngle(yAxis, -RR_leg.getTheta2());
-/*
-  shoulderFL.setRotationFromAxisAngle(yAxis, options.shoulderFL * Math.PI / 180);
-  shoulderFR.setRotationFromAxisAngle(yAxis, options.shoulderFR * Math.PI / 180);
-  shoulderRL.setRotationFromAxisAngle(yAxis, options.shoulderRL * Math.PI / 180);
-  shoulderRR.setRotationFromAxisAngle(yAxis, options.shoulderRR * Math.PI / 180);
-  kneeFL.setRotationFromAxisAngle(yAxis, options.kneeFL * Math.PI / 180);
-  kneeFR.setRotationFromAxisAngle(yAxis, options.kneeFR * Math.PI / 180);
-  kneeRL.setRotationFromAxisAngle(yAxis, options.kneeRL * Math.PI / 180);
-  kneeRR.setRotationFromAxisAngle(yAxis, options.kneeRR * Math.PI / 180);
-*/
+
+  shoulderFL.setRotationFromAxisAngle(yAxis, -FL_leg.theta1);
+  shoulderFR.setRotationFromAxisAngle(yAxis, -FR_leg.theta1);
+  shoulderRL.setRotationFromAxisAngle(yAxis, -RL_leg.theta1);
+  shoulderRR.setRotationFromAxisAngle(yAxis, -RR_leg.theta1);
+  
+  kneeFL.setRotationFromAxisAngle(yAxis, -FL_leg.theta2);
+  kneeFR.setRotationFromAxisAngle(yAxis, -FR_leg.theta2);
+  kneeRL.setRotationFromAxisAngle(yAxis, -RL_leg.theta2);
+  kneeRR.setRotationFromAxisAngle(yAxis, -RR_leg.theta2);
+
   // Render
   renderer.render( scene, camera );
 };
