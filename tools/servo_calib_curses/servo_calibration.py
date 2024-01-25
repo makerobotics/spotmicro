@@ -7,7 +7,8 @@ if ADAFRUIT:
 
 # Sample servo values and target positions
 servo_values = [400] * 12
-target_positions = [350] * 12
+#target_positions = [350] * 12
+target_positions = [455, 370, 395, 360, 380, 315, 370, 360, 365, 490, 360, 360] # Initial positions
 selected_channels = []  # List to store selected channels
 message = "---"
 
