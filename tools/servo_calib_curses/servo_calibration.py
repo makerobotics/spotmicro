@@ -112,6 +112,16 @@ def edit_channel_value(stdscr, current_channel):
         stdscr.refresh()
         stdscr.getch()  # Wait for user input
 
+def moveChannelTarget(stdscr, current_channel, direction):
+    if "R" in direction:
+        message = "Move servo right"
+        target_positions[current_channel] += 5
+    else:
+        message = "Move servo left"
+        target_positions[current_channel] -= 5
+    stdscr.addstr(curses.LINES-2, 0, message)
+    stdscr.refresh()
+
 def edit_channel_target(stdscr, current_channel):
     stdscr.addstr(3 + current_channel, 0, " " * 80)
     stdscr.addstr(3 + current_channel, 0, f"Enter new target position for Channel {current_channel + 1} (Current: {target_positions[current_channel]}): ")
@@ -207,6 +217,10 @@ def main(stdscr):
             current_channel -= 1
         elif key == curses.KEY_DOWN and current_channel < len(servo_values) - 1:
             current_channel += 1
+        elif key == curses.KEY_RIGHT:
+            moveChannelTarget(stdscr, current_channel, "R")
+        elif key == curses.KEY_LEFT:
+            moveChannelTarget(stdscr, current_channel, "L")
         elif key == ord('a'):
             # Allow editing the value of the current channel
             edit_target_angle(stdscr, current_channel)
