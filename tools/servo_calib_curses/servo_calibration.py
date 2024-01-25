@@ -8,7 +8,7 @@ if ADAFRUIT:
 # Sample servo values and target positions
 #servo_values = [400] * 12
 #target_positions = [350] * 12
-servo_values = [455, 370, 395, 360, 380, 315, 370, 360, 490, 325, 370, 500] # Initial positions
+servo_values = [455, 370, 395, 395, 315, 370, 370, 360, 490, 325, 370, 500] # Initial positions
 target_positions = servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
