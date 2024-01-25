@@ -9,7 +9,11 @@ if ADAFRUIT:
 #servo_values = [400] * 12
 #target_positions = [350] * 12
 servo_values = [455, 370, 395, 360, 380, 315, 370, 360, 490, 325, 370, 500] # Initial positions
-target_positions = [455, 370, 395, 360, 380, 315, 370, 360, 490, 325, 370, 500] # Initial positions
+target_positions = servo_values.copy()
+
+# Increment target to activate the servos initially (not in target position)
+for i in range(0,len(target_positions)):
+    target_positions[i] += 1 
 selected_channels = []  # List to store selected channels
 message = "---"
 
