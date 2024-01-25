@@ -1,7 +1,7 @@
 import curses
 import time
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 
