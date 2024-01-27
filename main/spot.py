@@ -2,7 +2,8 @@
 
 import time
 import logging
-import sense, control
+import control
+#import sense
 
 from tornado.options import options, define, parse_command_line
 from tornado.ioloop import PeriodicCallback
@@ -25,7 +26,8 @@ except ImportError:
     import io
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 CAM = 0
 
@@ -132,8 +134,8 @@ if __name__ == '__main__':
 
     logger.debug("Starting control thread")
     logger.debug("Starting senor thread")
-    s = sense.sense()
-    s.start()
+    #s = sense.sense()
+    #s.start()
     c = control.control()
     c.start()
     while(1):
@@ -143,10 +145,10 @@ if __name__ == '__main__':
             break
     # Signal termination
     logger.info("User interrupt")
-    s.terminate()
+    #s.terminate()
     c.terminate()
     logger.debug("Main loop finished (__main__")
     # Wait for actual termination (if needed)
     c.join()
-    s.join()
+    #s.join()
     logger.info("Spot micro terminated")

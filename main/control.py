@@ -5,12 +5,12 @@ import logging
 import configparser
 from threading import Thread
 #import RPi.GPIO as GPIO
-import sense
+#import sense
 import data
 import servos
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 class control(Thread):
 
