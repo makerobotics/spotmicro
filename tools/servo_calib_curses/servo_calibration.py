@@ -1,10 +1,24 @@
 import curses
 from curses.textpad import rectangle
 import time
+import math
 import yaml
 ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
+import leg
+
+C_WIDTH = 400
+C_HEIGHT = 300
+LEG_LENGTH = 20
+LONG_LEG_DISTANCE = 40
+LAT_LEG_DISTANCE = 10
+DX = 1; DY = 1; DZ = 1
+
+g_FL_leg = leg.leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+g_RL_leg = leg.leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+g_FR_leg = leg.leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
 # Sample servo values and target positions
 #servo_values = [400] * 12
@@ -169,28 +183,6 @@ def display_help(stdscr):
 
     help_win.refresh()
 
-def display_functions(stdscr, current_channel):
-    global g_target_positions, g_function_text, g_message
-    selection_text = ["Press '0' to reset functions",
-                     "Press '1' to stand up",
-                     "Press '2' to sit down"]
-    
-    function_win = curses.newwin(10, 40, 0, curses.COLS-40)
-    function_win.border()
-    function_win.addstr(1, 2, "Call functions", curses.A_BOLD)
-    for i, line in enumerate(selection_text):
-        if g_selected_function == i:
-            function_win.addstr(3+i, 2, line, curses.A_BOLD)
-        else:
-            function_win.addstr(3+i, 2, line)
-
-    if g_selected_function == 1:
-        g_target_positions[5] = 444
-        g_function_text = "Test"
-        
-    function_win.addstr(8, 2, "Status:"+g_function_text)
-    function_win.refresh()
-
 def closeServos(stdscr):
     for i in range(12):
         stdscr.addstr(curses.LINES-1, 0, "[Status] Close Servo "+str(i))
@@ -198,7 +190,7 @@ def closeServos(stdscr):
         time.sleep(0.1)
         if ADAFRUIT:
             pwm.set_pwm(i, 0, 4096)
-    time.sleep(0.5)
+    time.sleep(0.1)
 
 def control_servos(stdscr, current_channel):
     global g_servo_values, g_message
@@ -218,11 +210,35 @@ def control_servos(stdscr, current_channel):
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-                time.sleep(0.05)
+                time.sleep(0.005)
                 #g_message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
                 #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
                 display_servo_values(stdscr, current_channel)
                 stdscr.refresh()
+
+def function_positions(stdscr):
+    global g_message
+
+    if g_selected_function == 1:
+        g_FL_leg.move_next(0, 10, 0)
+        g_message = g_FL_leg.printData()
+    elif g_selected_function == 2:
+        g_FL_leg.move_next(0, 0, 0)
+        g_message = g_FL_leg.printData()
+    else:
+        return
+    time.sleep(0.1)
+    min_pwm_range, max_pwm_range = g_channel_data[0]['range']
+    min_pwm_angle, max_pwm_angle = g_channel_data[0]['angles']        
+    g_target_positions[0] = AngleToPWM(int(math.ceil(g_FL_leg.theta1 * 180 / math.pi)), 
+        min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+    min_pwm_range, max_pwm_range = g_channel_data[1]['range']
+    min_pwm_angle, max_pwm_angle = g_channel_data[1]['angles']
+    g_target_positions[1] = AngleToPWM(int(math.ceil(g_FL_leg.theta2 * 180 / math.pi)), 
+        min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+    g_target_positions[2] = 400
+    stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0]))
+    stdscr.refresh()
         
 def main(stdscr):
     global g_selected_function, g_message
@@ -233,13 +249,12 @@ def main(stdscr):
     #stdscr.clear()
     stdscr.erase()
     while True:
+        function_positions(stdscr)
         control_servos(stdscr, current_channel)
         display_main_frame(stdscr)
         display_servo_values(stdscr, current_channel)
         display_help(stdscr)
         display_message(stdscr)
-        #display_functions(stdscr, current_channel)
-        #stdscr.border()
         try:
             key = stdscr.getch()
         except:

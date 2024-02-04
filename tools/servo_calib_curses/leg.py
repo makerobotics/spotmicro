@@ -13,8 +13,14 @@ EY = 25
 #   Bottom leg angle:         theta2 
 #   
 #   In this module, all angles are in rad
+C_WIDTH = 400
+C_HEIGHT = 300
+LEG_LENGTH = 20
+LONG_LEG_DISTANCE = 40
+LAT_LEG_DISTANCE = 10
+DX = 1; DY = 1; DZ = 1
 
-class Leg:
+class leg:
     def __init__(self, name, L1, L2, theta1, theta2, theta3, longPos, latPos):
         self.name = name
         self.L1 = L1
@@ -141,11 +147,11 @@ class Leg:
         }
                                                
     def printData(self):
-        print(f"theta1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
+        return f"theta1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
 theta2: {math.ceil(self.theta2 * 180 / math.pi):03d}°, \
 theta3: {math.ceil(self.theta3 * 180 / math.pi):03d}°, \
 P1({math.ceil(self.X1)}, {math.ceil(self.Y1)}, {math.ceil(self.Z1)}), \
-P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})")
+P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         
     def move_next(self, target_x, target_y, target_z):
         x, y, z, dx, dy, dz = 0, 0, 0, 0, 0, 0
@@ -193,21 +199,15 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})")
 
 # Run this if standalone (test purpose)
 if __name__ == '__main__':
-    C_WIDTH = 400
-    C_HEIGHT = 300
-    LEG_LENGTH = 20
-    LONG_LEG_DISTANCE = 40
-    LAT_LEG_DISTANCE = 10
-    DX = 1; DY = 1; DZ = 1
     
-    FL_leg = Leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
-    RL_leg = Leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
-    FR_leg = Leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
-    RR_leg = Leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+    FL_leg = leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+    RL_leg = leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+    FR_leg = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+    RR_leg = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
     FL_leg.printData()
     #FL_leg.setTarget(0, 20, 0)
     #FL_leg.calcInverseKinematics()
     for i in range(12):
         FL_leg.move_next(0, 10, 0)
-        FL_leg.printData()
+        print(FL_leg.printData())
