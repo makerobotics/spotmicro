@@ -1,21 +1,25 @@
 import curses
+from curses.textpad import rectangle
 import time
 import yaml
-ADAFRUIT = 1 # for PC simulation
+ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 
 # Sample servo values and target positions
 #servo_values = [400] * 12
 #target_positions = [350] * 12
-servo_values = [455, 370, 395, 395, 315, 370, 370, 360, 490, 325, 370, 500] # Initial positions
-target_positions = servo_values.copy()
+g_servo_values = [455, 370, 395, 395, 315, 370, 370, 360, 490, 325, 370, 500] # Initial positions
+g_target_positions = g_servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
-for i in range(0,len(target_positions)):
-    target_positions[i] += 1 
-selected_channels = []  # List to store selected channels
-message = "---"
+for i in range(0,len(g_target_positions)):
+    g_target_positions[i] += 1 
+g_selected_channels = []  # List to store selected channels
+g_message = "---"
+# Functions variables
+g_function_text = "Empty"
+g_selected_function = 0
 
 if ADAFRUIT:
     pwm = Adafruit_PCA9685.PCA9685()
@@ -23,7 +27,7 @@ if ADAFRUIT:
 
 # Read channel ranges from a YAML file
 with open('channel_ranges.yaml', 'r') as file:
-    channel_data = yaml.safe_load(file)
+    g_channel_data = yaml.safe_load(file)
 
 def AngleToPWM(angle, min_pwm, max_pwm, min_angle, max_angle):
     factor = (max_pwm-min_pwm)/(max_angle-min_angle)
@@ -34,43 +38,127 @@ def PWMtoAngle(pwm, min_pwm, max_pwm, min_pwm_angle, max_pwm_angle):
     factor = (max_pwm_angle-min_pwm_angle)/(max_pwm-min_pwm)
     offset = min_pwm_angle - factor*min_pwm
     return int(offset + factor*pwm)
-    
-def display_servo_values(stdscr, current_channel):
-    stdscr.clear()
+
+def toggle_channel_selection(current_channel):
+    if current_channel in g_selected_channels:
+        g_selected_channels.remove(current_channel)
+    else:
+        g_selected_channels.append(current_channel)
+
+def moveChannelTarget(stdscr, current_channel, direction):
+    if "R" in direction:
+        message = "Move servo right"
+        g_target_positions[current_channel] += 5
+    else:
+        message = "Move servo left"
+        g_target_positions[current_channel] -= 5
+    #stdscr.addstr(curses.LINES-2, 0, message)
+    #stdscr.refresh()
+
+def edit_channel_target(stdscr, current_channel):
+    stdscr.addstr(3 + current_channel, 0, " " * 80)
+    stdscr.addstr(3 + current_channel, 0, f"Enter new target position for Channel {current_channel + 1} (Current: {g_target_positions[current_channel]}): ")
+    stdscr.refresh()
+
+    stdscr.nodelay(False)
+    curses.echo()  # Enable input echoing
+    new_target_str = stdscr.getstr().decode('utf-8')
+    curses.noecho()  # Disable input echoing
+    stdscr.nodelay(True)
+    try:
+        new_target = int(new_target_str)
+        # Limit target position within the specified range
+        min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
+        g_target_positions[current_channel] = max(min(new_target, max_pwm_range), min_pwm_range)
+    except ValueError:
+        stdscr.addstr(3 + current_channel, 0, "Invalid input. Target position must be an integer.")
+        stdscr.refresh()
+        stdscr.nodelay(False)
+        stdscr.getch()  # Wait for user input
+        stdscr.nodelay(True)
+
+def edit_target_angle(stdscr, current_channel):
+    stdscr.addstr(3 + current_channel, 0, " " * 80)
+    stdscr.addstr(3 + current_channel, 0, f"Enter new target angle for Channel {current_channel + 1}: ")
+    stdscr.refresh()
+
+    curses.echo()  # Enable input echoing
+    stdscr.nodelay(False)
+    new_target_str = stdscr.getstr().decode('utf-8')
+    stdscr.nodelay(True)
+    curses.noecho()  # Disable input echoing
+
+    try:
+        new_target = int(new_target_str)
+        # Limit target position within the specified range
+        min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
+        min_pwm_angle, max_pwm_angle = g_channel_data[current_channel]['angles']
+#        target_positions[current_channel] = max(min(AngleToPWM(new_target, min_range, max_range, min_angle, max_angle), max_range), min_range)
+        g_target_positions[current_channel] = AngleToPWM(new_target, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+    except ValueError:
+        stdscr.addstr(3 + current_channel, 0, "Invalid input. Target angle must be an integer.")
+        stdscr.refresh()
+        stdscr.nodelay(False)
+        stdscr.getch()  # Wait for user input
+        stdscr.nodelay(True)
+
+def handle_x_key(stdscr, current_channel):
+    global g_message, g_selected_channels
+
+    if current_channel in g_selected_channels:
+        g_message = "Stopped servo "+str(current_channel)
+        if ADAFRUIT:
+            pwm.set_pwm(current_channel, 0, 4096)
+    else:
+        g_message = "Servo is not active."
+
+def display_main_frame(stdscr):
     stdscr.addstr(0, 0, "Servo calibration", curses.A_BOLD)
-    stdscr.addstr(2, 0, "Channel             | PWM | PWM range | Angle | Angle range   ", curses.A_UNDERLINE)
+
+def display_message(stdscr):
+    global g_message
+
+    stdscr.addstr(curses.LINES-2, 0, " "*80)
+    stdscr.addstr(curses.LINES-2, 0, g_message)
+
+def display_servo_values(stdscr, current_channel):
+    Y_START = 2
+    X_START = 0
+    LINE_LEN = 62
+    stdscr.addstr(Y_START, X_START, "Channel             | PWM | PWM range | Angle | Angle range   ", curses.A_UNDERLINE)
     
-    for i, (value, target, channel_info) in enumerate(zip(servo_values, target_positions, channel_data)):
+    for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         alias = channel_info.get('alias', f"CH{i + 1}")
         min_pwm_range, max_pwm_range = channel_info['range']
         min_pwm_angle, max_pwm_angle = channel_info['angles']
         current_angle = PWMtoAngle(value, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
 
-        #servo_str = f"{alias}: {formatted_value} (Target: {formatted_target}) | Range: [{min_range:02d}, {max_range:02d}]"
-        servo_str = f"{alias:20s}| {target:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
+        #servo_str = f"{alias:20s}| {target:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
 
-        if i in selected_channels:
+        if i in g_selected_channels:
+            servo_str = f"{alias:20s}| {value:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
             servo_str += " (Active)"
+        else:
+            servo_str = f"{alias:20s}| {target:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
+            servo_str += " "*10
 
-        stdscr.addstr(3 + i, 0, servo_str)
-        if i in selected_channels:
-            stdscr.chgat(3 + i, 0, curses.A_STANDOUT)
+        stdscr.addstr(Y_START+1 + i, X_START, servo_str)
+        if i in g_selected_channels:
+            stdscr.chgat(Y_START+1 + i, X_START, LINE_LEN, curses.A_STANDOUT)
         if i == current_channel:
-            stdscr.chgat(3 + i, 0, curses.A_BOLD)
-        if i == current_channel and i in selected_channels:
-            stdscr.chgat(3 + i, 0, curses.A_BOLD|curses.A_STANDOUT)
-            
-    stdscr.addstr(curses.LINES-2, 0, message)
-    stdscr.refresh()
+            stdscr.chgat(Y_START+1 + i, X_START, curses.A_BOLD)
+        if i == current_channel and i in g_selected_channels:
+            stdscr.chgat(Y_START+1 + i, X_START, LINE_LEN, curses.A_BOLD|curses.A_STANDOUT)
 
 def display_help(stdscr):
     help_text = [
         "Press 'q' to quit.",
-        "Use arrow keys to navigate up and down.",
+        "Use arrow keys to navigate up and down. Inc/dec by left and right.",
         "Press 'a' to edit the target angle of the current channel.",
         "Press 'p' to edit the target raw position of the current channel.",
         "Press 't' to toggle the selection of the current channel.",
-        "Press 'x' to stop current servo (pwm = 4096)."
+        "Press 'x' to stop current servo (pwm = 4096).",
+        "Press '0-9' to run program('0' turns off)."
     ]
 
     help_win = curses.newwin(len(help_text) + 2, curses.COLS, curses.LINES - len(help_text) - 4, 0)
@@ -81,98 +169,27 @@ def display_help(stdscr):
 
     help_win.refresh()
 
-def handle_s_key(channels, target_positions):
-    # Example function, replace with your own logic
-    aliases = [channel_data[channel].get('alias', f"CH{channel + 1}") for channel in channels]
-    print(f"Function called with Channels {channels} ({aliases}) and Target Positions {target_positions}")
+def display_functions(stdscr, current_channel):
+    global g_target_positions, g_function_text, g_message
+    selection_text = ["Press '0' to reset functions",
+                     "Press '1' to stand up",
+                     "Press '2' to sit down"]
+    
+    function_win = curses.newwin(10, 40, 0, curses.COLS-40)
+    function_win.border()
+    function_win.addstr(1, 2, "Call functions", curses.A_BOLD)
+    for i, line in enumerate(selection_text):
+        if g_selected_function == i:
+            function_win.addstr(3+i, 2, line, curses.A_BOLD)
+        else:
+            function_win.addstr(3+i, 2, line)
 
-def handle_x_key(stdscr, current_channel):
-    global message
-
-    if current_channel in selected_channels:
-        message = "Stopped servo "+str(current_channel)
-        if ADAFRUIT:
-            pwm.set_pwm(current_channel, 0, 4096)
-    else:
-        message = "Servo is not active."
-    stdscr.addstr(curses.LINES-2, 0, message)
-    stdscr.refresh()
-
-
-def edit_channel_value(stdscr, current_channel):
-    stdscr.addstr(3 + current_channel, 0, " " * 80)
-    stdscr.addstr(3 + current_channel, 0, f"Enter new value for CH {current_channel + 1} (Target: {target_positions[current_channel]}): ")
-    stdscr.refresh()
-
-    curses.echo()  # Enable input echoing
-    new_value_str = stdscr.getstr().decode('utf-8')
-    curses.noecho()  # Disable input echoing
-
-    try:
-        new_value = int(new_value_str)
-        # Limit value within the specified range
-        min_range, max_range = channel_data[current_channel]['range']
-        servo_values[current_channel] = max(min(new_value, max_range), min_range)
-    except ValueError:
-        stdscr.addstr(3 + current_channel, 0, "Invalid input. Value must be an integer.")
-        stdscr.refresh()
-        stdscr.getch()  # Wait for user input
-
-def moveChannelTarget(stdscr, current_channel, direction):
-    if "R" in direction:
-        message = "Move servo right"
-        target_positions[current_channel] += 5
-    else:
-        message = "Move servo left"
-        target_positions[current_channel] -= 5
-    stdscr.addstr(curses.LINES-2, 0, message)
-    stdscr.refresh()
-
-def edit_channel_target(stdscr, current_channel):
-    stdscr.addstr(3 + current_channel, 0, " " * 80)
-    stdscr.addstr(3 + current_channel, 0, f"Enter new target position for Channel {current_channel + 1} (Current: {target_positions[current_channel]}): ")
-    stdscr.refresh()
-
-    curses.echo()  # Enable input echoing
-    new_target_str = stdscr.getstr().decode('utf-8')
-    curses.noecho()  # Disable input echoing
-
-    try:
-        new_target = int(new_target_str)
-        # Limit target position within the specified range
-        min_pwm_range, max_pwm_range = channel_data[current_channel]['range']
-        target_positions[current_channel] = max(min(new_target, max_pwm_range), min_pwm_range)
-    except ValueError:
-        stdscr.addstr(3 + current_channel, 0, "Invalid input. Target position must be an integer.")
-        stdscr.refresh()
-        stdscr.getch()  # Wait for user input
-
-def edit_target_angle(stdscr, current_channel):
-    stdscr.addstr(3 + current_channel, 0, " " * 80)
-    stdscr.addstr(3 + current_channel, 0, f"Enter new target angle for Channel {current_channel + 1}: ")
-    stdscr.refresh()
-
-    curses.echo()  # Enable input echoing
-    new_target_str = stdscr.getstr().decode('utf-8')
-    curses.noecho()  # Disable input echoing
-
-    try:
-        new_target = int(new_target_str)
-        # Limit target position within the specified range
-        min_pwm_range, max_pwm_range = channel_data[current_channel]['range']
-        min_pwm_angle, max_pwm_angle = channel_data[current_channel]['angles']
-#        target_positions[current_channel] = max(min(AngleToPWM(new_target, min_range, max_range, min_angle, max_angle), max_range), min_range)
-        target_positions[current_channel] = AngleToPWM(new_target, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
-    except ValueError:
-        stdscr.addstr(3 + current_channel, 0, "Invalid input. Target angle must be an integer.")
-        stdscr.refresh()
-        stdscr.getch()  # Wait for user input
-
-def toggle_channel_selection(current_channel):
-    if current_channel in selected_channels:
-        selected_channels.remove(current_channel)
-    else:
-        selected_channels.append(current_channel)
+    if g_selected_function == 1:
+        g_target_positions[5] = 444
+        g_function_text = "Test"
+        
+    function_win.addstr(8, 2, "Status:"+g_function_text)
+    function_win.refresh()
 
 def closeServos(stdscr):
     for i in range(12):
@@ -183,12 +200,12 @@ def closeServos(stdscr):
             pwm.set_pwm(i, 0, 4096)
     time.sleep(0.5)
 
-def control_servos(stdscr):
-    global servo_values, message
+def control_servos(stdscr, current_channel):
+    global g_servo_values, g_message
 
-    for i, (value, target, channel_info) in enumerate(zip(servo_values, target_positions, channel_data)):
+    for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         min_range, max_range = channel_info['range']
-        if i in selected_channels:
+        if i in g_selected_channels:
             while value != target:
                 nextvalue = value
                 if target > value:
@@ -200,28 +217,38 @@ def control_servos(stdscr):
                 value = nextvalue
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
-                servo_values[i] = nextvalue
+                g_servo_values[i] = nextvalue
                 time.sleep(0.05)
-                message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
-                stdscr.addstr(curses.LINES-2, 0, message)
+                #g_message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
+                #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
+                display_servo_values(stdscr, current_channel)
                 stdscr.refresh()
-                
+        
 def main(stdscr):
-    curses.curs_set(0)  # Hide cursor
+    global g_selected_function, g_message
     current_channel = 0
+    curses.curs_set(0)  # Hide cursor
 
+    stdscr.nodelay(True)
+    #stdscr.clear()
+    stdscr.erase()
     while True:
-        control_servos(stdscr)
+        control_servos(stdscr, current_channel)
+        display_main_frame(stdscr)
         display_servo_values(stdscr, current_channel)
         display_help(stdscr)
-        
-        key = stdscr.getch()
-
+        display_message(stdscr)
+        #display_functions(stdscr, current_channel)
+        #stdscr.border()
+        try:
+            key = stdscr.getch()
+        except:
+            key = None
         if key == ord('q'):
             break
         elif key == curses.KEY_UP and current_channel > 0:
             current_channel -= 1
-        elif key == curses.KEY_DOWN and current_channel < len(servo_values) - 1:
+        elif key == curses.KEY_DOWN and current_channel < len(g_servo_values) - 1:
             current_channel += 1
         elif key == curses.KEY_RIGHT:
             moveChannelTarget(stdscr, current_channel, "R")
@@ -233,16 +260,24 @@ def main(stdscr):
         elif key == ord('p'):
             # Allow editing the target position of the current channel
             edit_channel_target(stdscr, current_channel)
-        #elif key == ord('s'):
-        #    # Call the function with selected channels and their target positions
-        #    handle_s_key(selected_channels, [target_positions[channel] for channel in selected_channels])
-        elif key == ord('x'):
-            # Call the function with selected channels and their target positions
-            handle_x_key(stdscr, current_channel)
         elif key == ord('t'):
             # Toggle the selection of the current channel
             toggle_channel_selection(current_channel)
+        elif key == ord('x'):
+            # Call the function with selected channels and their target positions
+            handle_x_key(stdscr, current_channel)
+        elif key == ord('0'):
+            g_selected_function = 0
+            g_message = "Functions off"
+        elif key == ord('1'):
+            g_selected_function = 1
+            g_message = "Function 1 active"
+        elif key == ord('2'):
+            g_selected_function = 2
+            g_message = "Function 2 active"
 
+        time.sleep(0.03)
+        stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
 
