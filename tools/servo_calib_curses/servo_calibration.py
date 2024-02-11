@@ -43,10 +43,14 @@ if ADAFRUIT:
 with open('channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
+def bound(low, high, value):
+    return max(low, min(high, value))
+
 def AngleToPWM(angle, min_pwm, max_pwm, min_angle, max_angle):
     factor = (max_pwm-min_pwm)/(max_angle-min_angle)
-    offset = min_pwm - factor*min_angle 
-    return int(offset + factor*angle)
+    offset = min_pwm - factor*min_angle
+    pwm = bound(min(min_pwm, max_pwm), max(min_pwm,max_pwm), int(offset + factor * angle))
+    return pwm
 
 def PWMtoAngle(pwm, min_pwm, max_pwm, min_pwm_angle, max_pwm_angle):
     factor = (max_pwm_angle-min_pwm_angle)/(max_pwm-min_pwm)
@@ -60,12 +64,18 @@ def toggle_channel_selection(current_channel):
         g_selected_channels.append(current_channel)
 
 def moveChannelTarget(stdscr, current_channel, direction):
+    min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
     if "R" in direction:
         message = "Move servo right"
         g_target_positions[current_channel] += 5
     else:
         message = "Move servo left"
         g_target_positions[current_channel] -= 5
+    # Bound pwm    
+    if g_target_positions[current_channel]>max_pwm_range:
+        g_target_positions[current_channel] = max_pwm_range
+    elif g_target_positions[current_channel]<min_pwm_range:
+        g_target_positions[current_channel] = min_pwm_range
     #stdscr.addstr(curses.LINES-2, 0, message)
     #stdscr.refresh()
 
@@ -145,14 +155,13 @@ def display_servo_values(stdscr, current_channel):
         alias = channel_info.get('alias', f"CH{i + 1}")
         min_pwm_range, max_pwm_range = channel_info['range']
         min_pwm_angle, max_pwm_angle = channel_info['angles']
-        current_angle = PWMtoAngle(value, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
-
-        #servo_str = f"{alias:20s}| {target:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
 
         if i in g_selected_channels:
+            current_angle = PWMtoAngle(value, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
             servo_str = f"{alias:20s}| {value:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
             servo_str += " (Active)"
         else:
+            current_angle = PWMtoAngle(target, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
             servo_str = f"{alias:20s}| {target:03d}   [{min_pwm_range:03d}, {max_pwm_range:03d}]   {current_angle:03d}°   [{min_pwm_angle:03d}, {max_pwm_angle:03d}]    "
             servo_str += " "*10
 
@@ -217,7 +226,7 @@ def control_servos(stdscr, current_channel):
                 stdscr.refresh()
 
 def function_positions(stdscr):
-    global g_message
+    global g_message, g_target_positions, g_FL_leg
 
     if g_selected_function == 1:
         g_FL_leg.move_next(0, 10, 0)
@@ -228,16 +237,19 @@ def function_positions(stdscr):
     else:
         return
     time.sleep(0.1)
+    # Knee
     min_pwm_range, max_pwm_range = g_channel_data[0]['range']
     min_pwm_angle, max_pwm_angle = g_channel_data[0]['angles']        
-    g_target_positions[0] = AngleToPWM(int(math.ceil(g_FL_leg.theta1 * 180 / math.pi)), 
+    g_target_positions[0] = AngleToPWM(int(math.ceil(g_FL_leg.theta2 * 180 / math.pi)), 
         min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+    # Shoulder
     min_pwm_range, max_pwm_range = g_channel_data[1]['range']
     min_pwm_angle, max_pwm_angle = g_channel_data[1]['angles']
-    g_target_positions[1] = AngleToPWM(int(math.ceil(g_FL_leg.theta2 * 180 / math.pi)), 
+    g_target_positions[1] = AngleToPWM(int(math.ceil(g_FL_leg.theta1 * 180 / math.pi)), 
         min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+    # Hip
     g_target_positions[2] = 400
-    stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0]))
+    stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0])+", "+str(g_target_positions[1])+", "+str(g_target_positions[2]))
     stdscr.refresh()
         
 def main(stdscr):
