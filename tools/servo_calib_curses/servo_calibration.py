@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -219,7 +219,6 @@ def control_servos(stdscr, current_channel):
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-                #time.sleep(0.005)
                 #g_message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
                 #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
                 display_servo_values(stdscr, current_channel)
@@ -242,7 +241,6 @@ def function_positions(stdscr):
         g_message = g_FL_leg.printData()
     else:
         return
-    #time.sleep(0.1)
     angles_theta1 = [g_FL_leg.theta1 * 180 / math.pi, g_FR_leg.theta1 * 180 / math.pi,
                      g_RL_leg.theta1 * 180 / math.pi, g_RR_leg.theta1 * 180 / math.pi]
     angles_theta2 = [g_FL_leg.theta2 * 180 / math.pi, g_FR_leg.theta2 * 180 / math.pi,
@@ -319,8 +317,8 @@ def main(stdscr):
         elif key == ord('2'):
             g_selected_function = 2
             g_message = "Function 2 active"
-
-        time.sleep(0.001)
+        # Master delay to control speed
+        time.sleep(0.1)
         stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
