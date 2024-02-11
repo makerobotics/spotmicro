@@ -219,7 +219,7 @@ def control_servos(stdscr, current_channel):
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-                time.sleep(0.005)
+                #time.sleep(0.005)
                 #g_message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
                 #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
                 display_servo_values(stdscr, current_channel)
@@ -230,27 +230,40 @@ def function_positions(stdscr):
 
     if g_selected_function == 1:
         g_FL_leg.move_next(0, 10, 0)
+        g_FR_leg.move_next(0, 10, 0)
+        g_RL_leg.move_next(0, 10, 0)
+        g_RR_leg.move_next(0, 10, 0)
         g_message = g_FL_leg.printData()
     elif g_selected_function == 2:
         g_FL_leg.move_next(0, 0, 0)
+        g_FR_leg.move_next(0, 0, 0)
+        g_RL_leg.move_next(0, 0, 0)
+        g_RR_leg.move_next(0, 0, 0)
         g_message = g_FL_leg.printData()
     else:
         return
-    time.sleep(0.1)
-    # Knee
-    min_pwm_range, max_pwm_range = g_channel_data[0]['range']
-    min_pwm_angle, max_pwm_angle = g_channel_data[0]['angles']        
-    g_target_positions[0] = AngleToPWM(int(math.ceil(g_FL_leg.theta2 * 180 / math.pi)), 
-        min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
-    # Shoulder
-    min_pwm_range, max_pwm_range = g_channel_data[1]['range']
-    min_pwm_angle, max_pwm_angle = g_channel_data[1]['angles']
-    g_target_positions[1] = AngleToPWM(int(math.ceil(g_FL_leg.theta1 * 180 / math.pi)), 
-        min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
-    # Hip
-    g_target_positions[2] = 400
-    stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0])+", "+str(g_target_positions[1])+", "+str(g_target_positions[2]))
-    stdscr.refresh()
+    #time.sleep(0.1)
+    angles_theta1 = [g_FL_leg.theta1 * 180 / math.pi, g_FR_leg.theta1 * 180 / math.pi,
+                     g_RL_leg.theta1 * 180 / math.pi, g_RR_leg.theta1 * 180 / math.pi]
+    angles_theta2 = [g_FL_leg.theta2 * 180 / math.pi, g_FR_leg.theta2 * 180 / math.pi,
+                     g_RL_leg.theta2 * 180 / math.pi, g_RR_leg.theta2 * 180 / math.pi]
+    for i in range(4):
+        # Knee
+        min_pwm_range, max_pwm_range = g_channel_data[i*3]['range']
+        min_pwm_angle, max_pwm_angle = g_channel_data[i*3]['angles']        
+        g_target_positions[i*3] = AngleToPWM(int(angles_theta2[i]), 
+            min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+        # Shoulder
+        min_pwm_range, max_pwm_range = g_channel_data[i*3+1]['range']
+        min_pwm_angle, max_pwm_angle = g_channel_data[i*3+1]['angles']
+        g_target_positions[i*3+1] = AngleToPWM(int(math.ceil(angles_theta1[i])), 
+            min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+        # Hip
+        min_pwm_range, max_pwm_range = g_channel_data[i*3+2]['range']
+        min_pwm_angle, max_pwm_angle = g_channel_data[i*3+2]['angles']
+        g_target_positions[i*3+2] = AngleToPWM(0, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)    
+    #stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0])+", "+str(g_target_positions[1])+", "+str(g_target_positions[2]))
+    #stdscr.refresh()
         
 def main(stdscr):
     global g_selected_function, g_message
@@ -290,6 +303,10 @@ def main(stdscr):
         elif key == ord('t'):
             # Toggle the selection of the current channel
             toggle_channel_selection(current_channel)
+        elif key == ord('T'):
+            # Toggle all the channels
+            for i in range(12):
+                toggle_channel_selection(i)
         elif key == ord('x'):
             # Call the function with selected channels and their target positions
             handle_x_key(stdscr, current_channel)
@@ -303,7 +320,7 @@ def main(stdscr):
             g_selected_function = 2
             g_message = "Function 2 active"
 
-        time.sleep(0.03)
+        time.sleep(0.001)
         stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
