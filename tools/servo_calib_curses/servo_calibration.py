@@ -29,14 +29,14 @@ g_servo_values = [455, 370, 395,
                   395, 315, 370, 
                   370, 360, 490, 
                   325, 370, 500] # Initial positions (stand up)
-g_servo_values = [200, 650, 410, 
-                  100, 600, 365, 
-                  650, 100, 485, 
-                  650, 100, 525] # Initial positions (sit down)
-g_servo_values = [272, 600, 405, 
-                  173, 573, 365, 
-                  546, 145, 480, 
-                  536, 140, 510] # Initial positions (stand up low)
+g_servo_values = [205, 645, 410, 
+                  130, 590, 365, 
+                  620, 100, 485, 
+                  590, 100, 510] # Initial positions (sit down)
+#g_servo_values = [272, 600, 405, 
+#                  173, 573, 365, 
+#                  546, 145, 480, 
+#                  536, 140, 510] # Initial positions (stand up low)
 g_target_positions = g_servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
@@ -242,10 +242,10 @@ def function_positions(stdscr):
     global g_message, g_target_positions, g_FL_leg
 
     if g_selected_function == 1:
-        g_FL_leg.move_next(0, 10, 0)
-        g_FR_leg.move_next(0, 10, 0)
-        g_RL_leg.move_next(0, 10, 0)
-        g_RR_leg.move_next(0, 10, 0)
+        g_FL_leg.move_next(0, 16, 0)
+        g_FR_leg.move_next(0, 16, 0)
+        g_RL_leg.move_next(0, 16, 0)
+        g_RR_leg.move_next(0, 16, 0)
         g_message = g_FL_leg.printData()
     elif g_selected_function == 2:
         g_FL_leg.move_next(0, 0, 0)
