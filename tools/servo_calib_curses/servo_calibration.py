@@ -33,6 +33,10 @@ g_servo_values = [200, 650, 410,
                   100, 600, 365, 
                   650, 100, 485, 
                   650, 100, 525] # Initial positions (sit down)
+g_servo_values = [272, 600, 405, 
+                  173, 573, 365, 
+                  546, 145, 480, 
+                  536, 140, 510] # Initial positions (stand up low)
 g_target_positions = g_servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
