@@ -8,6 +8,8 @@ if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
 
+### https://www.marinamele.com/7-tips-to-time-python-scripts-and-control-memory-and-cpu-usage
+
 C_WIDTH = 400
 C_HEIGHT = 300
 LEG_LENGTH = 20
@@ -23,7 +25,14 @@ g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, 
 # Sample servo values and target positions
 #servo_values = [400] * 12
 #target_positions = [350] * 12
-g_servo_values = [455, 370, 395, 395, 315, 370, 370, 360, 490, 325, 370, 500] # Initial positions
+g_servo_values = [455, 370, 395, 
+                  395, 315, 370, 
+                  370, 360, 490, 
+                  325, 370, 500] # Initial positions (stand up)
+g_servo_values = [200, 650, 410, 
+                  100, 600, 365, 
+                  650, 100, 485, 
+                  650, 100, 525] # Initial positions (sit down)
 g_target_positions = g_servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
@@ -207,7 +216,8 @@ def control_servos(stdscr, current_channel):
     for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         min_range, max_range = channel_info['range']
         if i in g_selected_channels:
-            while value != target:
+#            while value != target:
+            if value != target:
                 nextvalue = value
                 if target > value:
                     nextvalue += 1
@@ -318,7 +328,7 @@ def main(stdscr):
             g_selected_function = 2
             g_message = "Function 2 active"
         # Master delay to control speed
-        time.sleep(0.1)
+        time.sleep(0.01)
         stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
