@@ -1,5 +1,7 @@
 import math
 
+# Not used. Only for init.
+# positions of Bezier start and end points
 SX = 10
 SY = 25
 EX = 0
@@ -13,12 +15,11 @@ EY = 25
 #   Bottom leg angle:         theta2 
 #   
 #   In this module, all angles are in rad
-C_WIDTH = 400
-C_HEIGHT = 300
 LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
 DX = 1; DY = 1; DZ = 1
+DEBUG = 0
 
 class leg:
     def __init__(self, name, L1, L2, theta1, theta2, theta3, longPos, latPos):
@@ -39,14 +40,21 @@ class leg:
         self.direction = 1
 
         # recalculate bezier curve
-        self.sx = SX
-        self.sy = SY
-        self.c1x = self.sx
-        self.c1y = self.sy + 5 * self.direction
-        self.ex = EX
-        self.ey = EY
-        self.c2x = self.ex
-        self.c2y = self.ey + 5 * self.direction
+        self.sx = SX # x coordinate of bezier start point
+        self.sy = SY # y coordinate of bezier start point
+        self.c1x = self.sx # x coordinate of bezier control point 1
+        self.c1y = self.sy + 5 * self.direction # y coordinate of bezier control point 1
+        self.ex = EX # x coordinate of bezier end point
+        self.ey = EY # y coordinate of bezier end point
+        self.c2x = self.ex # x coordinate of bezier control point 2
+        self.c2y = self.ey + 5 * self.direction # y coordinate of bezier control point 2
+
+        if DEBUG:
+            self.f = open("debugdata.log", "a")
+
+    def debug(self, text):
+        if "FL" in self.name and DEBUG:
+            self.f.write(self.name+" - "+text+"\n")
 
     def setTheta1(self, angle):
         self.theta1 = angle
@@ -71,16 +79,18 @@ class leg:
         vals = self.getBezierXY(t)
         self.X2 = vals['x']
         self.Y2 = vals['y']
+        self.debug("Bezier: "+str(vals)+" - pos: "+str(t))
 
-    def reversePath(self, t):
+    # recalculate bezier curve. Start and end are equal in both directions-
+    # only control point is varying in both directions
+    def reversePath(self):
         self.direction = -self.direction
-        # recalculate bezier curve
-        self.sx = SX
-        self.sy = SY
+        #self.sx = SX
+        #self.sy = SY
         self.c1x = self.sx
         self.c1y = self.sy + 5 * self.direction
-        self.ex = EX
-        self.ey = EY
+        #self.ex = EX
+        #self.ey = EY
         self.c2x = self.ex
         self.c2y = self.ey + 5 * self.direction
 
@@ -138,6 +148,8 @@ class leg:
         self.calcZ1()
         self.calcZ2()  # Z mandatory to avoid NAN in calc
 
+# get coordinates of point on Bezier curve.
+# t determines how far we are on the curve. 0: Start, 1: End
     def getBezierXY(self, t):
         return {
             'x': math.pow(1 - t, 3) * self.sx + 3 * t * math.pow(1 - t, 2) * self.c1x +
@@ -202,12 +214,32 @@ if __name__ == '__main__':
     
     FL_leg = leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
     RL_leg = leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
-    FR_leg = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
-    RR_leg = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+    #FR_leg = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+    #RR_leg = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
     FL_leg.printData()
-    #FL_leg.setTarget(0, 20, 0)
-    #FL_leg.calcInverseKinematics()
-    for i in range(12):
-        FL_leg.move_next(0, 10, 0)
+    print("Stand-up")
+    for i in range(16):
+        FL_leg.move_next(0, 16, 0)
+        RL_leg.move_next(0, 16, 0)
         print(FL_leg.printData())
+    print("Bezier 1 FL leg")
+    FL_leg.sx = FL_leg.X2
+    FL_leg.sy = FL_leg.Y2
+    RL_leg.sx = RL_leg.X2
+    RL_leg.sy = RL_leg.Y2
+    
+    FL_leg.ex = FL_leg.X2-5
+    FL_leg.ey = FL_leg.Y2
+    RL_leg.ex = RL_leg.X2-5
+    RL_leg.ey = RL_leg.Y2
+    for i in range(11):
+        FL_leg.setPath(i/10)
+        FL_leg.calcInverseKinematics()
+        print(FL_leg.printData())
+    print("Reverse RL leg")
+    RL_leg.reversePath()
+    for i in reversed(range(11)):
+        RL_leg.setPath(i/10)
+        RL_leg.calcInverseKinematics()
+        print(RL_leg.printData())

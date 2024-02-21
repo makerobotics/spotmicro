@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 1 # for PC simulation
+ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -47,13 +47,16 @@ g_message = "---"
 # Functions variables
 g_function_text = "Empty"
 g_selected_function = 0
+g_dir = 1
+g_step = 0
 
 if ADAFRUIT:
     pwm = Adafruit_PCA9685.PCA9685()
     pwm.set_pwm_freq(60)
 
 # Read channel ranges from a YAML file
-with open('channel_ranges.yaml', 'r') as file:
+with open('/home/yann/Documents/spotmicro/tools/servo_calib_curses/channel_ranges.yaml', 'r') as file:
+#with open('channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
 def bound(low, high, value):
@@ -224,7 +227,7 @@ def control_servos(stdscr, current_channel):
             if value != target:
                 nextvalue = value
                 if target > value:
-                    nextvalue += 1
+                    nextvalue += 1 # todo: improve speed
                 elif target < value:
                     nextvalue -= 1
                 if nextvalue>max_range or nextvalue<min_range:
@@ -237,6 +240,35 @@ def control_servos(stdscr, current_channel):
                 #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
                 display_servo_values(stdscr, current_channel)
                 stdscr.refresh()
+
+def move_bezier():
+    global g_dir, g_step
+
+    g_FL_leg.setPath(g_step/10)
+    g_FL_leg.calcInverseKinematics()
+    g_FR_leg.setPath(g_step/10)
+    g_FR_leg.calcInverseKinematics()
+    g_RL_leg.setPath(g_step/10)
+    g_RL_leg.calcInverseKinematics()
+    g_RR_leg.setPath(g_step/10)
+    g_RR_leg.calcInverseKinematics()
+
+#    pos = g_FL_leg.getBezierXY(g_step / 10)
+#    g_FL_leg.move_next(pos["x"], pos["y"], 0)
+#    pos = g_FR_leg.getBezierXY(g_step / 10)
+#    g_FR_leg.move_next(pos["x"], pos["y"], 0)
+#    pos = g_RL_leg.getBezierXY(g_step / 10)
+#    g_RL_leg.move_next(pos["x"], pos["y"], 0)
+#    pos = g_RR_leg.getBezierXY(g_step / 10)
+#    g_RR_leg.move_next(pos["x"], pos["y"], 0)
+    
+    g_step += g_dir
+    if g_step == 10 or g_step == 0:
+        g_dir = -g_dir
+        g_FL_leg.reversePath()
+        g_FR_leg.reversePath()
+        g_RL_leg.reversePath()
+        g_RR_leg.reversePath()
 
 def function_positions(stdscr):
     global g_message, g_target_positions, g_FL_leg
@@ -253,6 +285,8 @@ def function_positions(stdscr):
         g_RL_leg.move_next(0, 0, 0)
         g_RR_leg.move_next(0, 0, 0)
         g_message = g_FL_leg.printData()
+    elif g_selected_function == 3:
+        move_bezier()
     else:
         return
     angles_theta1 = [g_FL_leg.theta1 * 180 / math.pi, g_FR_leg.theta1 * 180 / math.pi,
@@ -279,6 +313,8 @@ def function_positions(stdscr):
         
 def main(stdscr):
     global g_selected_function, g_message
+    global g_FL_leg, g_RL_leg, g_FR_leg, g_RR_leg
+
     current_channel = 0
     curses.curs_set(0)  # Hide cursor
 
@@ -331,8 +367,30 @@ def main(stdscr):
         elif key == ord('2'):
             g_selected_function = 2
             g_message = "Function 2 active"
+        elif key == ord('3'):
+            g_selected_function = 3
+            g_message = "Function 3 active"
+            g_FL_leg.sx = g_FL_leg.X2
+            g_FL_leg.sy = g_FL_leg.Y2
+            g_RL_leg.sx = g_RL_leg.X2
+            g_RL_leg.sy = g_RL_leg.Y2
+            g_FR_leg.sx = g_FR_leg.X2
+            g_FR_leg.sy = g_FR_leg.Y2
+            g_RR_leg.sx = g_RR_leg.X2
+            g_RR_leg.sy = g_RR_leg.Y2
+            
+            g_FL_leg.ex = g_FL_leg.X2-5
+            g_FL_leg.ey = g_FL_leg.Y2
+            g_RL_leg.ex = g_RL_leg.X2-5
+            g_RL_leg.ey = g_RL_leg.Y2
+            g_FR_leg.ex = g_FR_leg.X2-5
+            g_FR_leg.ey = g_FR_leg.Y2
+            g_RR_leg.ex = g_RR_leg.X2-5
+            g_RR_leg.ey = g_RR_leg.Y2
+
         # Master delay to control speed
         time.sleep(0.01)
+        #time.sleep(1.01)
         stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
