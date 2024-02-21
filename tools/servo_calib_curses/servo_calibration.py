@@ -3,15 +3,13 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
 
 ### https://www.marinamele.com/7-tips-to-time-python-scripts-and-control-memory-and-cpu-usage
 
-C_WIDTH = 400
-C_HEIGHT = 300
 LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
@@ -55,8 +53,7 @@ if ADAFRUIT:
     pwm.set_pwm_freq(60)
 
 # Read channel ranges from a YAML file
-with open('/home/yann/Documents/spotmicro/tools/servo_calib_curses/channel_ranges.yaml', 'r') as file:
-#with open('channel_ranges.yaml', 'r') as file:
+with open('channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
 def bound(low, high, value):
@@ -252,15 +249,6 @@ def move_bezier():
     g_RL_leg.calcInverseKinematics()
     g_RR_leg.setPath(g_step/10)
     g_RR_leg.calcInverseKinematics()
-
-#    pos = g_FL_leg.getBezierXY(g_step / 10)
-#    g_FL_leg.move_next(pos["x"], pos["y"], 0)
-#    pos = g_FR_leg.getBezierXY(g_step / 10)
-#    g_FR_leg.move_next(pos["x"], pos["y"], 0)
-#    pos = g_RL_leg.getBezierXY(g_step / 10)
-#    g_RL_leg.move_next(pos["x"], pos["y"], 0)
-#    pos = g_RR_leg.getBezierXY(g_step / 10)
-#    g_RR_leg.move_next(pos["x"], pos["y"], 0)
     
     g_step += g_dir
     if g_step == 10 or g_step == 0:
