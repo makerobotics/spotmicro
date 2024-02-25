@@ -66,7 +66,7 @@ with open('channel_ranges.yaml', 'r') as file:
 
 def debug(text):
     if DEBUG:
-        t = g_initTime-time.time()
+        t = time.time()-g_initTime
         g_file.write(f"{t:.3f} - "+text+"\n")
 
 def bound(low, high, value):
@@ -235,13 +235,18 @@ def control_servos(stdscr, current_channel):
         if i in g_selected_channels:
 #            while value != target:
             if value != target:
-                nextvalue = value
-                if target > value:
-                    nextvalue += 1 # todo: improve speed
-                elif target < value:
-                    nextvalue -= 1
-                if nextvalue>max_range or nextvalue<min_range:
-                    break
+#                nextvalue = value
+                nextvalue = target
+#                if target > value:
+#                    nextvalue += 1 # todo: improve speed
+#                elif target < value:
+#                    nextvalue -= 1
+#                if nextvalue>max_range or nextvalue<min_range:
+#                    break
+                if nextvalue>max_range:
+                    nextvalue = max_range
+                elif nextvalue<min_range:
+                    nextvalue = min_range
                 value = nextvalue
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
