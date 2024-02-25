@@ -18,7 +18,7 @@ EY = 25
 LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
-DX = 1; DY = 1; DZ = 1
+#DX = 1; DY = 1; DZ = 1
 DEBUG = 0
 
 class leg:
@@ -38,6 +38,7 @@ class leg:
         self.longPos = longPos
         self.latPos = latPos
         self.direction = 1
+        self.DX, self.DY, self.DZ = 1, 1, 1
 
         # recalculate bezier curve
         self.sx = SX # x coordinate of bezier start point
@@ -80,6 +81,11 @@ class leg:
         self.X2 = vals['x']
         self.Y2 = vals['y']
         self.debug("Bezier: "+str(vals)+" - pos: "+str(t))
+
+    def setSpeeds(self, dx, dy, dz):
+        self.DX = dx
+        self.DY = dy
+        self.DZ = dz
 
     # recalculate bezier curve. Start and end are equal in both directions-
     # only control point is varying in both directions
@@ -172,35 +178,35 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         z = self.Z2
 
         if x < target_x:
-            if (target_x - x) > DX:
-                dx = DX
+            if (target_x - x) > self.DX:
+                dx = self.DX
             else:
                 dx = target_x - x
         elif x > target_x:
-            if (x - target_x) >= DX:
-                dx = -DX
+            if (x - target_x) >= self.DX:
+                dx = -self.DX
             else:
                 dx = -(x - target_x)
 
         if y < target_y:
-            if (target_y - y) > DY:
-                dy = DY
+            if (target_y - y) > self.DY:
+                dy = self.DY
             else:
                 dy = target_y - y
         elif y > target_y:
-            if (y - target_y) >= DY:
-                dy = -DY
+            if (y - target_y) >= self.DY:
+                dy = -self.DY
             else:
                 dy = -(y - target_y)
 
         if z < target_z:
-            if (target_z - z) > DZ:
-                dz = DZ
+            if (target_z - z) > self.DZ:
+                dz = self.DZ
             else:
                 dz = target_z - z
         elif z > target_z:
-            if (z - target_z) >= DZ:
-                dz = -DZ
+            if (z - target_z) >= self.DZ:
+                dz = -self.DZ
             else:
                 dz = -(z - target_z)
 

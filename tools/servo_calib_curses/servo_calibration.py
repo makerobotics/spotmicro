@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -261,36 +261,44 @@ def move_bezier():
         g_RL_leg.reversePath()
         g_RR_leg.reversePath()
 
-def walk():
+def walk(x, y, z, fwd, up):
     global g_sequence, g_message
 
-    if g_sequence == 1:
-        g_FL_leg.move_next(0, 16, 0)
-        g_FR_leg.move_next(0, 16, 0)
-        g_RL_leg.move_next(0, 16, 0)
-        g_RR_leg.move_next(0, 16, 0)
-        if(g_FL_leg.Y2 == 16):
+    # Initial stand up
+    if g_sequence == 0:
+        g_FL_leg.move_next(x, y, z)
+        #g_FR_leg.move_next(x, y, z)
+        #g_RL_leg.move_next(x, y, z)
+        #g_RR_leg.move_next(x, y, z)
+        if(g_FL_leg.Y2 == y):
+            g_sequence +=1
+    elif g_sequence == 1:
+        g_FL_leg.move_next(x, y-up, z)
+        #g_FR_leg.move_next(x, y, z)
+        #g_RL_leg.move_next(x, y, z)
+        #g_RR_leg.move_next(x, y, z)
+        if(g_FL_leg.Y2 == y-up):
             g_sequence +=1
     elif g_sequence == 2:
-        g_FL_leg.move_next(0, 12, 0)
-        g_FR_leg.move_next(0, 12, 0)
-        g_RL_leg.move_next(0, 12, 0)
-        g_RR_leg.move_next(0, 12, 0)
-        if(g_FL_leg.Y2 == 12):
+        g_FL_leg.move_next(x+fwd, y-up, z)
+        #g_FR_leg.move_next(x, y-up, z)
+        #g_RL_leg.move_next(x, y-up, z)
+        #g_RR_leg.move_next(x, y-up, z)
+        if(g_FL_leg.X2 == x+fwd):
             g_sequence +=1
     elif g_sequence == 3:
-        g_FL_leg.move_next(5, 12, 0)
-        g_FR_leg.move_next(5, 12, 0)
-        g_RL_leg.move_next(5, 12, 0)
-        g_RR_leg.move_next(5, 12, 0)
-        if(g_FL_leg.X2 == 5):
+        g_FL_leg.move_next(x+fwd, y, z)
+        #g_FR_leg.move_next(x+fwd, y-up, z)
+        #g_RL_leg.move_next(x+fwd, y-up, z)
+        #g_RR_leg.move_next(x+fwd, y-up, z)
+        if(g_FL_leg.Y2 == y):
             g_sequence +=1
     elif g_sequence == 4:
-        g_FL_leg.move_next(5, 16, 0)
-        g_FR_leg.move_next(5, 16, 0)
-        g_RL_leg.move_next(5, 16, 0)
-        g_RR_leg.move_next(5, 16, 0)
-        if(g_FL_leg.X2 == 5):
+        g_FL_leg.move_next(x, y, z)
+        #g_FR_leg.move_next(x+fwd, y, z)
+        #g_RL_leg.move_next(x+fwd, y, z)
+        #g_RR_leg.move_next(x+fwd, y, z)
+        if(g_FL_leg.X2 == x):
             g_sequence = 1
     g_message = g_FL_leg.printData()+" -- Step "+str(g_sequence)
 
@@ -312,7 +320,7 @@ def function_positions(stdscr):
     elif g_selected_function == 3:
         move_bezier()
     elif g_selected_function == 4:
-        walk()
+        walk(0, 20, 0, 5, 5)
     else:
         return
     # Get angles from legs and calculate corresponding servo positions
