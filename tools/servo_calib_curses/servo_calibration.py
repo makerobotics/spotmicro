@@ -14,6 +14,10 @@ LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
 DX = 1; DY = 1; DZ = 1
+DEBUG = 1
+
+if DEBUG:
+    g_file = open("debugdata.log", "a")
 
 g_FL_leg = leg.leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
 g_RL_leg = leg.leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
@@ -58,6 +62,10 @@ if ADAFRUIT:
 # Read channel ranges from a YAML file
 with open('channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
+
+def debug(text):
+    if DEBUG:
+        g_file.write(text+"\n")
 
 def bound(low, high, value):
     return max(low, min(high, value))
@@ -312,6 +320,8 @@ def function_positions(stdscr):
         g_RL_leg.move_next(0, 16, 0)
         g_RR_leg.move_next(0, 16, 0)
         g_message = g_FL_leg.printData()
+        debug(g_FL_leg.printData())
+        debug(g_FR_leg.printData())
     elif g_selected_function == 2:
         g_FL_leg.setSpeeds(1, 1, 1)
         g_FL_leg.move_next(0, 0, 0)
