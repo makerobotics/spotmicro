@@ -322,10 +322,10 @@ def function_positions(stdscr):
 
     if g_selected_function == 1:
         #g_FL_leg.setSpeeds(5, 5, 5)
-        g_FL_leg.move_next(0, 16, 0)
-        g_FR_leg.move_next(0, 16, 0)
-        g_RL_leg.move_next(0, 16, 0)
-        g_RR_leg.move_next(0, 16, 0)
+        g_FL_leg.move_next(0, 20, 0)
+        g_FR_leg.move_next(0, 20, 0)
+        g_RL_leg.move_next(0, 20, 0)
+        g_RR_leg.move_next(0, 20, 0)
         g_message = g_FL_leg.printData()
         debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
         debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
