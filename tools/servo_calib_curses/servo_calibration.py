@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 1 # for PC simulation
+ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -47,6 +47,9 @@ g_function_text = "Empty"
 g_selected_function = 0
 g_dir = 1
 g_step = 0
+g_sequence = 1
+g_fps = 0
+g_lastTick = time.time()
 
 if ADAFRUIT:
     pwm = Adafruit_PCA9685.PCA9685()
@@ -194,7 +197,7 @@ def display_help(stdscr):
         "Press 'p' to edit the target raw position of the current channel.",
         "Press 't' to toggle the selection of the current channel.",
         "Press 'x' to stop current servo (pwm = 4096).",
-        "Press '0-9' to run program('0' turns off)."
+        "Press '0-9' to run program('0' Off, '1' Stand, '2' Sit, '3' Bezier, '4' Walk)."
     ]
 
     help_win = curses.newwin(len(help_text) + 2, curses.COLS, curses.LINES - len(help_text) - 4, 0)
@@ -258,8 +261,41 @@ def move_bezier():
         g_RL_leg.reversePath()
         g_RR_leg.reversePath()
 
+def walk():
+    global g_sequence, g_message
+
+    if g_sequence == 1:
+        g_FL_leg.move_next(0, 16, 0)
+        g_FR_leg.move_next(0, 16, 0)
+        g_RL_leg.move_next(0, 16, 0)
+        g_RR_leg.move_next(0, 16, 0)
+        if(g_FL_leg.Y2 == 16):
+            g_sequence +=1
+    elif g_sequence == 2:
+        g_FL_leg.move_next(0, 12, 0)
+        g_FR_leg.move_next(0, 12, 0)
+        g_RL_leg.move_next(0, 12, 0)
+        g_RR_leg.move_next(0, 12, 0)
+        if(g_FL_leg.Y2 == 12):
+            g_sequence +=1
+    elif g_sequence == 3:
+        g_FL_leg.move_next(5, 12, 0)
+        g_FR_leg.move_next(5, 12, 0)
+        g_RL_leg.move_next(5, 12, 0)
+        g_RR_leg.move_next(5, 12, 0)
+        if(g_FL_leg.X2 == 5):
+            g_sequence +=1
+    elif g_sequence == 4:
+        g_FL_leg.move_next(5, 16, 0)
+        g_FR_leg.move_next(5, 16, 0)
+        g_RL_leg.move_next(5, 16, 0)
+        g_RR_leg.move_next(5, 16, 0)
+        if(g_FL_leg.X2 == 5):
+            g_sequence = 1
+    g_message = g_FL_leg.printData()+" -- Step "+str(g_sequence)
+
 def function_positions(stdscr):
-    global g_message, g_target_positions, g_FL_leg
+    global g_message, g_target_positions
 
     if g_selected_function == 1:
         g_FL_leg.move_next(0, 16, 0)
@@ -275,8 +311,11 @@ def function_positions(stdscr):
         g_message = g_FL_leg.printData()
     elif g_selected_function == 3:
         move_bezier()
+    elif g_selected_function == 4:
+        walk()
     else:
         return
+    # Get angles from legs and calculate corresponding servo positions
     angles_theta1 = [g_FL_leg.theta1 * 180 / math.pi, g_FR_leg.theta1 * 180 / math.pi,
                      g_RL_leg.theta1 * 180 / math.pi, g_RR_leg.theta1 * 180 / math.pi]
     angles_theta2 = [g_FL_leg.theta2 * 180 / math.pi, g_FR_leg.theta2 * 180 / math.pi,
@@ -296,9 +335,18 @@ def function_positions(stdscr):
         min_pwm_range, max_pwm_range = g_channel_data[i*3+2]['range']
         min_pwm_angle, max_pwm_angle = g_channel_data[i*3+2]['angles']
         g_target_positions[i*3+2] = AngleToPWM(0, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)    
-    #stdscr.addstr(curses.LINES-1, 0, "[Status] "+str(g_target_positions[0])+", "+str(g_target_positions[1])+", "+str(g_target_positions[2]))
-    #stdscr.refresh()
         
+def calcFPS(stdscr):
+    global g_fps, g_lastTick
+
+    t = time.time()
+    g_fps = t-g_lastTick
+    text = f"FPS: {g_fps:.3f} ms"
+
+    stdscr.addstr(curses.LINES-12, 0, " "*80)
+    stdscr.addstr(curses.LINES-12, 0, text)
+    g_lastTick = time.time()
+
 def main(stdscr):
     global g_selected_function, g_message
     global g_FL_leg, g_RL_leg, g_FR_leg, g_RR_leg
@@ -316,6 +364,7 @@ def main(stdscr):
         display_servo_values(stdscr, current_channel)
         display_help(stdscr)
         display_message(stdscr)
+        calcFPS(stdscr)
         try:
             key = stdscr.getch()
         except:
@@ -351,13 +400,13 @@ def main(stdscr):
             g_message = "Functions off"
         elif key == ord('1'):
             g_selected_function = 1
-            g_message = "Function 1 active"
+            g_message = "Stand up active"
         elif key == ord('2'):
             g_selected_function = 2
-            g_message = "Function 2 active"
+            g_message = "Sit down active"
         elif key == ord('3'):
             g_selected_function = 3
-            g_message = "Function 3 active"
+            g_message = "Bezier active"
             g_FL_leg.sx = g_FL_leg.X2
             g_FL_leg.sy = g_FL_leg.Y2
             g_RL_leg.sx = g_RL_leg.X2
@@ -375,7 +424,9 @@ def main(stdscr):
             g_FR_leg.ey = g_FR_leg.Y2
             g_RR_leg.ex = g_RR_leg.X2-5
             g_RR_leg.ey = g_RR_leg.Y2
-
+        elif key == ord('4'):
+            g_selected_function = 4
+            g_message = "Walk active"
         # Master delay to control speed
         time.sleep(0.01)
         #time.sleep(1.01)
