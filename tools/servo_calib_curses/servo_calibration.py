@@ -321,7 +321,7 @@ def function_positions(stdscr):
     global g_message, g_target_positions
 
     if g_selected_function == 1:
-        g_FL_leg.setSpeeds(5, 5, 5)
+        #g_FL_leg.setSpeeds(5, 5, 5)
         g_FL_leg.move_next(0, 16, 0)
         g_FR_leg.move_next(0, 16, 0)
         g_RL_leg.move_next(0, 16, 0)
@@ -330,7 +330,7 @@ def function_positions(stdscr):
         debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
         debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
     elif g_selected_function == 2:
-        g_FL_leg.setSpeeds(1, 1, 1)
+        #g_FL_leg.setSpeeds(1, 1, 1)
         g_FL_leg.move_next(0, 0, 0)
         g_FR_leg.move_next(0, 0, 0)
         g_RL_leg.move_next(0, 0, 0)
@@ -339,7 +339,7 @@ def function_positions(stdscr):
     elif g_selected_function == 3:
         move_bezier()
     elif g_selected_function == 4:
-        walk(0, 20, 0, 5, 5)
+        walk(0, 20, 0, 10, 5)
     else:
         return
     # Get angles from legs and calculate corresponding servo positions
