@@ -54,6 +54,7 @@ g_step = 0
 g_sequence = 1
 g_fps = 0
 g_lastTick = time.time()
+g_initTime = g_lastTick
 
 if ADAFRUIT:
     pwm = Adafruit_PCA9685.PCA9685()
@@ -65,7 +66,8 @@ with open('channel_ranges.yaml', 'r') as file:
 
 def debug(text):
     if DEBUG:
-        g_file.write(text+"\n")
+        t = g_initTime-time.time()
+        g_file.write(f"{t:.3f} - "+text+"\n")
 
 def bound(low, high, value):
     return max(low, min(high, value))
@@ -320,8 +322,8 @@ def function_positions(stdscr):
         g_RL_leg.move_next(0, 16, 0)
         g_RR_leg.move_next(0, 16, 0)
         g_message = g_FL_leg.printData()
-        debug(g_FL_leg.printData())
-        debug(g_FR_leg.printData())
+        debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
+        debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
     elif g_selected_function == 2:
         g_FL_leg.setSpeeds(1, 1, 1)
         g_FL_leg.move_next(0, 0, 0)
