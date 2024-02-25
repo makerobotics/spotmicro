@@ -306,12 +306,14 @@ def function_positions(stdscr):
     global g_message, g_target_positions
 
     if g_selected_function == 1:
+        g_FL_leg.setSpeeds(5, 5, 5)
         g_FL_leg.move_next(0, 16, 0)
         g_FR_leg.move_next(0, 16, 0)
         g_RL_leg.move_next(0, 16, 0)
         g_RR_leg.move_next(0, 16, 0)
         g_message = g_FL_leg.printData()
     elif g_selected_function == 2:
+        g_FL_leg.setSpeeds(1, 1, 1)
         g_FL_leg.move_next(0, 0, 0)
         g_FR_leg.move_next(0, 0, 0)
         g_RL_leg.move_next(0, 0, 0)

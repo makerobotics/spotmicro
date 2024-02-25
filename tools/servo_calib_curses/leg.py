@@ -18,7 +18,6 @@ EY = 25
 LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
-#DX = 1; DY = 1; DZ = 1
 DEBUG = 0
 
 class leg:
