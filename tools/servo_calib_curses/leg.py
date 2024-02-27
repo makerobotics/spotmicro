@@ -37,7 +37,7 @@ class leg:
         self.longPos = longPos
         self.latPos = latPos
         self.direction = 1
-        self.DX, self.DY, self.DZ = 1, 1, 1
+        self.DX, self.DY, self.DZ = 0.1, 0.1, 0.1
 
         # recalculate bezier curve
         self.sx = SX # x coordinate of bezier start point

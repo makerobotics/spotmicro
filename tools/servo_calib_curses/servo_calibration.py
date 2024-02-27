@@ -464,7 +464,8 @@ def main(stdscr):
             g_selected_function = 4
             g_message = "Walk active"
         # Master delay to control speed
-        time.sleep(0.001)
+        #time.sleep(0.001)
+        time.sleep(0.1)
         #time.sleep(1.0)
         stdscr.refresh()
     closeServos(stdscr)
