@@ -55,6 +55,7 @@ g_sequence = 1
 g_fps = 0
 g_lastTick = time.time()
 g_initTime = g_lastTick
+g_hold_display = 0
 
 if ADAFRUIT:
     pwm = Adafruit_PCA9685.PCA9685()
@@ -233,28 +234,19 @@ def control_servos(stdscr, current_channel):
     for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         min_range, max_range = channel_info['range']
         if i in g_selected_channels:
-#            while value != target:
             if value != target:
-#                nextvalue = value
                 nextvalue = target
-#                if target > value:
-#                    nextvalue += 1 # todo: improve speed
-#                elif target < value:
-#                    nextvalue -= 1
-#                if nextvalue>max_range or nextvalue<min_range:
-#                    break
                 if nextvalue>max_range:
                     nextvalue = max_range
                 elif nextvalue<min_range:
                     nextvalue = min_range
-                value = nextvalue
+#                value = nextvalue
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-                #g_message = "Move Servo "+str(i)+". val: "+str(value)+" target: "+str(target)+". Ranges: "+str(min_range)+", "+str(max_range)
-                #stdscr.addstr(curses.LINES-1, 0, "[Status] "+g_message)
-                display_servo_values(stdscr, current_channel)
-                stdscr.refresh()
+                if g_hold_display == 0:
+                    display_servo_values(stdscr, current_channel)
+                    stdscr.refresh()
 
 def move_bezier():
     global g_dir, g_step
@@ -275,6 +267,28 @@ def move_bezier():
         g_FR_leg.reversePath()
         g_RL_leg.reversePath()
         g_RR_leg.reversePath()
+
+def stand_up():
+    global g_message
+    
+    #g_FL_leg.setSpeeds(5, 5, 5)
+    g_FL_leg.move_next(0, 20, 0)
+    g_FR_leg.move_next(0, 20, 0)
+    g_RL_leg.move_next(0, 20, 0)
+    g_RR_leg.move_next(0, 20, 0)
+    g_message = g_FL_leg.printData()
+    #debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
+    #debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
+
+def sit_down():
+    global g_message
+
+    #g_FL_leg.setSpeeds(1, 1, 1)
+    g_FL_leg.move_next(0, 0, 0)
+    g_FR_leg.move_next(0, 0, 0)
+    g_RL_leg.move_next(0, 0, 0)
+    g_RR_leg.move_next(0, 0, 0)
+    g_message = g_FL_leg.printData()
 
 def walk(x, y, z, fwd, up):
     global g_sequence, g_message
@@ -317,31 +331,9 @@ def walk(x, y, z, fwd, up):
             g_sequence = 1
     g_message = g_FL_leg.printData()+" -- Step "+str(g_sequence)
 
-def function_positions(stdscr):
-    global g_message, g_target_positions
+def convert_angle_to_pwm():
+    global g_target_positions
 
-    if g_selected_function == 1:
-        #g_FL_leg.setSpeeds(5, 5, 5)
-        g_FL_leg.move_next(0, 20, 0)
-        g_FR_leg.move_next(0, 20, 0)
-        g_RL_leg.move_next(0, 20, 0)
-        g_RR_leg.move_next(0, 20, 0)
-        g_message = g_FL_leg.printData()
-        debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
-        debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
-    elif g_selected_function == 2:
-        #g_FL_leg.setSpeeds(1, 1, 1)
-        g_FL_leg.move_next(0, 0, 0)
-        g_FR_leg.move_next(0, 0, 0)
-        g_RL_leg.move_next(0, 0, 0)
-        g_RR_leg.move_next(0, 0, 0)
-        g_message = g_FL_leg.printData()
-    elif g_selected_function == 3:
-        move_bezier()
-    elif g_selected_function == 4:
-        walk(0, 20, 0, 10, 5)
-    else:
-        return
     # Get angles from legs and calculate corresponding servo positions
     angles_theta1 = [g_FL_leg.theta1 * 180 / math.pi, g_FR_leg.theta1 * 180 / math.pi,
                      g_RL_leg.theta1 * 180 / math.pi, g_RR_leg.theta1 * 180 / math.pi]
@@ -362,13 +354,26 @@ def function_positions(stdscr):
         min_pwm_range, max_pwm_range = g_channel_data[i*3+2]['range']
         min_pwm_angle, max_pwm_angle = g_channel_data[i*3+2]['angles']
         g_target_positions[i*3+2] = AngleToPWM(0, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)    
-        
+
+def function_positions(stdscr):
+    if g_selected_function == 1:
+        stand_up()
+    elif g_selected_function == 2:
+        sit_down()
+    elif g_selected_function == 3:
+        move_bezier()
+    elif g_selected_function == 4:
+        walk(0, 20, 0, 10, 5)
+    else:
+        return
+    convert_angle_to_pwm()
+
 def calcFPS(stdscr):
     global g_fps, g_lastTick
 
     t = time.time()
     g_fps = t-g_lastTick
-    text = f"FPS: {g_fps:.3f} ms"
+    text = f"FPS: {g_fps:.3f} s"
 
     stdscr.addstr(curses.LINES-12, 0, " "*80)
     stdscr.addstr(curses.LINES-12, 0, text)
@@ -377,20 +382,21 @@ def calcFPS(stdscr):
 def main(stdscr):
     global g_selected_function, g_message
     global g_FL_leg, g_RL_leg, g_FR_leg, g_RR_leg
+    global g_hold_display
 
     current_channel = 0
     curses.curs_set(0)  # Hide cursor
 
     stdscr.nodelay(True)
-    #stdscr.clear()
     stdscr.erase()
     while True:
         function_positions(stdscr)
         control_servos(stdscr, current_channel)
-        display_main_frame(stdscr)
-        display_servo_values(stdscr, current_channel)
-        display_help(stdscr)
-        display_message(stdscr)
+        if g_hold_display == 0:
+            display_main_frame(stdscr)
+            display_servo_values(stdscr, current_channel)
+            display_help(stdscr)
+            display_message(stdscr)
         calcFPS(stdscr)
         try:
             key = stdscr.getch()
@@ -422,6 +428,9 @@ def main(stdscr):
         elif key == ord('x'):
             # Call the function with selected channels and their target positions
             handle_x_key(stdscr, current_channel)
+        elif key == ord('d'):
+            # Toggle the curses refresh on and off
+            g_hold_display = not g_hold_display
         elif key == ord('0'):
             g_selected_function = 0
             g_message = "Functions off"
@@ -455,8 +464,8 @@ def main(stdscr):
             g_selected_function = 4
             g_message = "Walk active"
         # Master delay to control speed
-        time.sleep(0.01)
-        #time.sleep(1.01)
+        time.sleep(0.001)
+        #time.sleep(1.0)
         stdscr.refresh()
     closeServos(stdscr)
     curses.endwin()
