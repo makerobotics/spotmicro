@@ -150,13 +150,15 @@ let RR_leg = new leg(LEG_LENGTH, LEG_LENGTH, 0, 0, -LONG_LEG_DISTANCE, -LAT_LEG_
 let a1 = 0, a2 = 0;
 let dir = 1;
 let mode = "";
+let phase = 0;
+let step =  0;
 
 function init() {
    console.log("Init");
 
    let md = document.getElementById("sims");
-   md.value = "bezier";
-   mode = "bezier";
+   md.value = "walk";
+   mode = "walk";
 
    setInterval(loop, REFRESH);
 };
@@ -173,43 +175,18 @@ function loop(){
       loop_1();
    }
    else if(mode == "positions"){
-      loop_2(a1);
+      loop_2();
    }
    else if(mode == "bezier"){
       loop_3(a1);
+   }
+   else if(mode == "walk"){
+      loop_4();
    }
 }
 
 // Angle swipe loop (forward kinematic)
 function loop_1(){
-   move_1();
-   drawRobot();
-}
-
-// Position change (inverse kinematic)
-function loop_2(step){
-   move_2(0, step);
-   drawRobot();
-   a1+=dir;
-   if((a1==30) || (a1==0)) dir = -dir;
-}
-
-// Bezier path (inverse kinematic)
-function loop_3(step){
-   move_3();
-   drawRobot();
-   a1+=dir;
-   if((a1 == 10) || (a1 == 0)){
-      dir = -dir;
-      FL_leg.reversePath();
-      FR_leg.reversePath();
-      RL_leg.reversePath();
-      RR_leg.reversePath();
-   }
-}
-
-// Swipe both theta angles
-function move_1(){
    // Simulate movement by using forward kinematics
    a1 += dir;
    a2 += dir;
@@ -231,25 +208,32 @@ function move_1(){
    RR_leg.setTheta1(a1*Math.PI/180);
    RR_leg.setTheta2(a2*Math.PI/180);
    RR_leg.calcForwardKinematics();
-};
-
-// set different positions with inverse kinematics
-function move_2(x, y){
-   // test inverse kenematics
-   FL_leg.setTarget(x, y);
-   FL_leg.calcInverseKinematics();
    
-   FR_leg.setTarget(x, y);
-   FR_leg.calcInverseKinematics();
-   
-   RL_leg.setTarget(x, y);
-   RL_leg.calcInverseKinematics();
-   
-   RR_leg.setTarget(x, y);
-   RR_leg.calcInverseKinematics();
+   drawRobot();
 }
 
-function move_3(){
+// Position change (inverse kinematic) - stand up / sit down
+function loop_2(){
+   // test inverse kenematics
+   FL_leg.setTarget(0, a1);
+   FL_leg.calcInverseKinematics();
+   
+   FR_leg.setTarget(0, a1);
+   FR_leg.calcInverseKinematics();
+   
+   RL_leg.setTarget(0, a1);
+   RL_leg.calcInverseKinematics();
+   
+   RR_leg.setTarget(0, a1);
+   RR_leg.calcInverseKinematics();
+   
+   drawRobot();
+   a1+=dir;
+   if((a1==30) || (a1==0)) dir = -dir;
+}
+
+// Bezier path (inverse kinematic)
+function loop_3(step){
    FL_leg.setPath(a1/10);
    FL_leg.calcInverseKinematics();
    FR_leg.setPath(a1/10);
@@ -258,6 +242,99 @@ function move_3(){
    RL_leg.calcInverseKinematics();
    RR_leg.setPath(a1/10);
    RR_leg.calcInverseKinematics();
+
+   drawRobot();
+   a1+=dir;
+   if((a1 == 10) || (a1 == 0)){
+      dir = -dir;
+      FL_leg.reversePath();
+      FR_leg.reversePath();
+      RL_leg.reversePath();
+      RR_leg.reversePath();
+   }
+}
+
+// Calculate inverse kinematics for all legs
+function calculateAllInverseKinematics(){
+   FL_leg.calcInverseKinematics();
+   FR_leg.calcInverseKinematics();
+   RL_leg.calcInverseKinematics();
+   RR_leg.calcInverseKinematics();
+}
+
+// Walk gait (inverse kinematic)
+function loop_4(){
+   HEIGHT = 25;
+   UP = 5;
+   FWD = 8;
+
+   switch (phase){
+      case 0:
+         FL_leg.setTarget(0, step);
+         FR_leg.setTarget(0, step);         
+         RL_leg.setTarget(0, step);         
+         RR_leg.setTarget(0, step);
+         calculateAllInverseKinematics()
+         step++;
+         if(step == HEIGHT){
+            phase++;
+            step = 0;
+         }
+         break;
+      case 1:
+         FL_leg.setTarget(0, HEIGHT-step);
+         FR_leg.setTarget(0, HEIGHT-step);         
+         RL_leg.setTarget(0, HEIGHT-step);         
+         RR_leg.setTarget(0, HEIGHT-step);
+         calculateAllInverseKinematics()
+         step++;
+         if(step == UP){
+            phase++;
+            step = 0;
+         } 
+         break;
+      case 2:
+         FL_leg.setTarget(step, HEIGHT-UP);
+         FR_leg.setTarget(step, HEIGHT-UP);         
+         RL_leg.setTarget(step, HEIGHT-UP);         
+         RR_leg.setTarget(step, HEIGHT-UP);
+         calculateAllInverseKinematics()
+         step++;
+         if(step == FWD){
+            phase++;
+            step = 0;
+         } 
+         break;
+      case 3:
+         FL_leg.setTarget(FWD, HEIGHT-UP+step);
+         FR_leg.setTarget(FWD, HEIGHT-UP+step);         
+         RL_leg.setTarget(FWD, HEIGHT-UP+step);         
+         RR_leg.setTarget(FWD, HEIGHT-UP+step);
+         calculateAllInverseKinematics()
+         step++;
+         if(step == UP){
+            phase++;
+            step = 0;
+         } 
+         break;
+      case 4:
+         FL_leg.setTarget(FWD-step, HEIGHT);
+         FR_leg.setTarget(FWD-step, HEIGHT);         
+         RL_leg.setTarget(FWD-step, HEIGHT);         
+         RR_leg.setTarget(FWD-step, HEIGHT);
+         calculateAllInverseKinematics()
+         step++;
+         if(step == FWD){
+            phase = 1;
+            step = 0;
+         }
+         break;
+   
+   }
+   
+
+   drawRobot();
+   a1+=dir;
 }
 
 function drawLeg(context, leg){
