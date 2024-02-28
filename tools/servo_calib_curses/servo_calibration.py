@@ -27,23 +27,23 @@ g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, 
 # Sample servo values and target positions
 #servo_values = [400] * 12
 #target_positions = [350] * 12
-g_servo_values = [455, 370, 395, 
-                  395, 315, 370, 
-                  370, 360, 490, 
+g_servo_values = [455, 370, 395,
+                  395, 315, 370,
+                  370, 360, 490,
                   325, 370, 500] # Initial positions (stand up)
-g_servo_values = [205, 645, 410, 
-                  130, 590, 365, 
-                  620, 100, 485, 
+g_servo_values = [205, 645, 410,
+                  130, 590, 365,
+                  620, 100, 485,
                   590, 100, 510] # Initial positions (sit down)
-#g_servo_values = [272, 600, 405, 
-#                  173, 573, 365, 
-#                  546, 145, 480, 
+#g_servo_values = [272, 600, 405,
+#                  173, 573, 365,
+#                  546, 145, 480,
 #                  536, 140, 510] # Initial positions (stand up low)
 g_target_positions = g_servo_values.copy()
 
 # Increment target to activate the servos initially (not in target position)
 for i in range(0,len(g_target_positions)):
-    g_target_positions[i] += 1 
+    g_target_positions[i] += 1
 g_selected_channels = []  # List to store selected channels
 g_message = "---"
 # Functions variables
@@ -98,7 +98,7 @@ def moveChannelTarget(stdscr, current_channel, direction):
     else:
         message = "Move servo left"
         g_target_positions[current_channel] -= 5
-    # Bound pwm    
+    # Bound pwm
     if g_target_positions[current_channel]>max_pwm_range:
         g_target_positions[current_channel] = max_pwm_range
     elif g_target_positions[current_channel]<min_pwm_range:
@@ -177,7 +177,7 @@ def display_servo_values(stdscr, current_channel):
     X_START = 0
     LINE_LEN = 62
     stdscr.addstr(Y_START, X_START, "Channel             | PWM | PWM range | Angle | Angle range   ", curses.A_UNDERLINE)
-    
+
     for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         alias = channel_info.get('alias', f"CH{i + 1}")
         min_pwm_range, max_pwm_range = channel_info['range']
@@ -240,13 +240,12 @@ def control_servos(stdscr, current_channel):
                     nextvalue = max_range
                 elif nextvalue<min_range:
                     nextvalue = min_range
-#                value = nextvalue
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-                if g_hold_display == 0:
-                    display_servo_values(stdscr, current_channel)
-                    stdscr.refresh()
+#                if g_hold_display == 0:
+#                    display_servo_values(stdscr, current_channel)
+#                    stdscr.refresh()
 
 def move_bezier():
     global g_dir, g_step
@@ -259,7 +258,7 @@ def move_bezier():
     g_RL_leg.calcInverseKinematics()
     g_RR_leg.setPath(g_step/10)
     g_RR_leg.calcInverseKinematics()
-    
+
     g_step += g_dir
     if g_step == 10 or g_step == 0:
         g_dir = -g_dir
@@ -268,14 +267,14 @@ def move_bezier():
         g_RL_leg.reversePath()
         g_RR_leg.reversePath()
 
-def stand_up():
+def stand_up(height):
     global g_message
-    
+
     #g_FL_leg.setSpeeds(5, 5, 5)
-    g_FL_leg.move_next(0, 20, 0)
-    g_FR_leg.move_next(0, 20, 0)
-    g_RL_leg.move_next(0, 20, 0)
-    g_RR_leg.move_next(0, 20, 0)
+    g_FL_leg.move_next(0, height, 0)
+    g_FR_leg.move_next(0, height, 0)
+    g_RL_leg.move_next(0, height, 0)
+    g_RR_leg.move_next(0, height, 0)
     g_message = g_FL_leg.printData()
     #debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
     #debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
@@ -342,8 +341,8 @@ def convert_angle_to_pwm():
     for i in range(4):
         # Knee
         min_pwm_range, max_pwm_range = g_channel_data[i*3]['range']
-        min_pwm_angle, max_pwm_angle = g_channel_data[i*3]['angles']        
-        g_target_positions[i*3] = AngleToPWM(int(angles_theta2[i]), 
+        min_pwm_angle, max_pwm_angle = g_channel_data[i*3]['angles']
+        g_target_positions[i*3] = AngleToPWM(int(angles_theta2[i]),
             min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
         # Shoulder
         min_pwm_range, max_pwm_range = g_channel_data[i*3+1]['range']
@@ -353,17 +352,17 @@ def convert_angle_to_pwm():
         # Hip
         min_pwm_range, max_pwm_range = g_channel_data[i*3+2]['range']
         min_pwm_angle, max_pwm_angle = g_channel_data[i*3+2]['angles']
-        g_target_positions[i*3+2] = AngleToPWM(0, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)    
+        g_target_positions[i*3+2] = AngleToPWM(0, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
 
 def function_positions(stdscr):
     if g_selected_function == 1:
-        stand_up()
+        stand_up(22)
     elif g_selected_function == 2:
         sit_down()
     elif g_selected_function == 3:
         move_bezier()
     elif g_selected_function == 4:
-        walk(0, 20, 0, 10, 5)
+        walk(0, 22, 0, 8, 5)
     else:
         return
     convert_angle_to_pwm()
@@ -392,10 +391,13 @@ def main(stdscr):
     while True:
         function_positions(stdscr)
         control_servos(stdscr, current_channel)
-        if g_hold_display == 0:
-            display_main_frame(stdscr)
+        display_help(stdscr)
+        display_main_frame(stdscr)
+        #if g_hold_display == 0:
+        if 1:
+#            display_main_frame(stdscr)
             display_servo_values(stdscr, current_channel)
-            display_help(stdscr)
+#            display_help(stdscr)
             display_message(stdscr)
         calcFPS(stdscr)
         try:
@@ -451,7 +453,7 @@ def main(stdscr):
             g_FR_leg.sy = g_FR_leg.Y2
             g_RR_leg.sx = g_RR_leg.X2
             g_RR_leg.sy = g_RR_leg.Y2
-            
+
             g_FL_leg.ex = g_FL_leg.X2-5
             g_FL_leg.ey = g_FL_leg.Y2
             g_RL_leg.ex = g_RL_leg.X2-5
@@ -464,8 +466,8 @@ def main(stdscr):
             g_selected_function = 4
             g_message = "Walk active"
         # Master delay to control speed
-        #time.sleep(0.001)
-        time.sleep(0.1)
+        time.sleep(0.001)
+        #time.sleep(0.1)
         #time.sleep(1.0)
         stdscr.refresh()
     closeServos(stdscr)
