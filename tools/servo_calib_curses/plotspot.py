@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
+from leg import leg
+
+LEG_LENGTH = 20
+LONG_LEG_DISTANCE = 40
+LAT_LEG_DISTANCE = 10
 
 class Walking_Leg:
     def __init__(self, name, x, y, z) -> None:
@@ -64,21 +69,23 @@ class Walking:
         self.height = height
         self.UP = 5
         self.FWD = 5
-        self.leg_FL = Walking_Leg("FL", 0, 0, height)
-        self.leg_FR = Walking_Leg("FR", 0, 0, height)
-        self.leg_RL = Walking_Leg("RL", 0, 0, height)
-        self.leg_RR = Walking_Leg("RR", 0, 0, height)
+
+        self.leg_FL = leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+        self.leg_RL = leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+        self.leg_FR = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+        self.leg_RR = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+
 
         self.phase = 0
 
     def walk(self, speed):
         match self.phase:
             case 0:
-                if self.leg_RL.run(speed) == 6: # Transition to phase 3 (touch ground)
+                if self.leg_RL.walk() == 6: # Transition to phase 3 (touch ground)
                     self.phase += 1
             case 1:
-                self.leg_FL.run(speed)
-                self.leg_RL.run(speed)
+                self.leg_FL.walk()
+                self.leg_RL.walk()
                 return
             case _:
                 pass
@@ -185,12 +192,19 @@ class DynamicThreeDPlotter:
 if __name__ == '__main__':
     legs = []
     w = Walking(-20)
+    print("Stand-up -20 for walk")
+    while not w.leg_FL.move_next(0, 0, -20):
+        w.leg_RL.move_next(0, 0, -20)
+        w.leg_FR.move_next(0, 0, -20)
+        w.leg_RR.move_next(0, 0, -20)
+        print(w.leg_FL.printData())
+    print("Walk for n ticks")
     for i in range(60):
         w.walk(0.5)
-        legs.append([(w.leg_FR.x, w.leg_FR.y, w.leg_FR.z),
-                     (w.leg_FL.x, w.leg_FL.y, w.leg_FL.z),
-                     (w.leg_RR.x, w.leg_RR.y, w.leg_RR.z),
-                     (w.leg_RL.x, w.leg_RL.y, w.leg_RL.z)])
+        legs.append([(w.leg_FR.X2, w.leg_FR.Y2, w.leg_FR.Z2),
+                     (w.leg_FL.X2, w.leg_FL.Y2, w.leg_FL.Z2),
+                     (w.leg_RR.X2, w.leg_RR.Y2, w.leg_RR.Z2),
+                     (w.leg_RL.X2, w.leg_RL.Y2, w.leg_RL.Z2)])
     
     # Create an instance of the DynamicThreeDPlotter class
     dynamic_plotter = DynamicThreeDPlotter(legs)
