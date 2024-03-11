@@ -3,12 +3,12 @@ import math
 # Not used. Only for init.
 # positions of Bezier start and end points
 SX = 10
-SY = 25
+SZ = 25
 EX = 0
-EY = 25
+EZ = 25
 
-#   Medium point coordinates: (X1, Y1)
-#   End point coordinates:    (X2, Y2)
+#   Medium point coordinates: (X1, Y1, Z1)
+#   End point coordinates:    (X2, Y2, Z2)
 #   Top leg length:           L1
 #   Bottom leg length:        L2 
 #   Top leg angle:            theta1
@@ -27,27 +27,33 @@ class leg:
         self.L2 = L2
         self.X1 = 0 # not in original js code
         self.X2 = 0
-        self.Y1 = 0 # not in original js code
-        self.Y2 = 0
         self.Z1 = 0 # not in original js code
         self.Z2 = 0
+        self.Y1 = 0 # not in original js code
+        self.Y2 = 0
         self.theta1 = theta1
         self.theta2 = theta2
         self.theta3 = theta3
         self.longPos = longPos
         self.latPos = latPos
         self.direction = 1
-        self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
+#        self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
+        self.DX, self.DY, self.DZ = 1, 1, 1
+
+        self.height = -20
+        self.UP = 5
+        self.FWD_REV = 5
+        self.phase = 0
 
         # recalculate bezier curve
         self.sx = SX # x coordinate of bezier start point
-        self.sy = SY # y coordinate of bezier start point
+        self.sz = SZ # y coordinate of bezier start point
         self.c1x = self.sx # x coordinate of bezier control point 1
-        self.c1y = self.sy + 5 * self.direction # y coordinate of bezier control point 1
+        self.c1z = self.sz + 5 * self.direction # y coordinate of bezier control point 1
         self.ex = EX # x coordinate of bezier end point
-        self.ey = EY # y coordinate of bezier end point
+        self.ez = EZ # y coordinate of bezier end point
         self.c2x = self.ex # x coordinate of bezier control point 2
-        self.c2y = self.ey + 5 * self.direction # y coordinate of bezier control point 2
+        self.c2z = self.ez + 5 * self.direction # y coordinate of bezier control point 2
 
         if DEBUG:
             self.f = open("debugdata.log", "a")
@@ -68,17 +74,18 @@ class leg:
     def setTarget(self, x, y, z):
         self.X2 = x
         self.Y2 = y
-        self.Z2 = z
-
+        self.Z2 = z # Calculations are based on positive values,
+        # but Z is always negative
+        
     def setTargetAngles(self, theta1, theta2, theta3):
         self.theta1 = theta1
         self.theta2 = theta2
         self.theta3 = theta3
 
     def setPath(self, t):
-        vals = self.getBezierXY(t)
+        vals = self.getBezierXZ(t)
         self.X2 = vals['x']
-        self.Y2 = vals['y']
+        self.Z2 = vals['z']
         self.debug("Bezier: "+str(vals)+" - pos: "+str(t))
 
     def setSpeeds(self, dx, dy, dz):
@@ -91,45 +98,45 @@ class leg:
     def reversePath(self):
         self.direction = -self.direction
         #self.sx = SX
-        #self.sy = SY
+        #self.sz = SZ
         self.c1x = self.sx
-        self.c1y = self.sy + 5 * self.direction
+        self.c1z = self.sz + 5 * self.direction
         #self.ex = EX
-        #self.ey = EY
+        #self.ez = EZ
         self.c2x = self.ex
-        self.c2y = self.ey + 5 * self.direction
+        self.c2z = self.ez + 5 * self.direction
 
     def calcX1(self):
         self.X1 = self.L1 * math.sin(self.theta1)
         return self.X1
 
-    def calcY1(self):
-        self.Y1 = self.L1 * math.cos(self.theta1)
-        return self.Y1
-
     def calcZ1(self):
-        self.Z1 = 0
+        self.Z1 = self.L1 * math.cos(self.theta1)
         return self.Z1
+
+    def calcY1(self):
+        self.Y1 = 0
+        return self.Y1
 
     def calcX2(self):
         self.X2 = self.L2 * math.cos(math.pi/2 - self.theta1 - self.theta2) + self.L1 * math.sin(self.theta1)
         return self.X2
 
-    def calcY2(self):
-        self.Y2 = self.L2 * math.sin(math.pi/2 - self.theta1 - self.theta2) + self.L1 * math.cos(self.theta1)
-        return self.Y2
-
     def calcZ2(self):
+        self.Z2 = self.L2 * math.sin(math.pi/2 - self.theta1 - self.theta2) + self.L1 * math.cos(self.theta1)
         return self.Z2
 
+    def calcY2(self):
+        return self.Y2
+
     def calcTheta2(self):
-        self.theta2 = math.acos((self.X2 * self.X2 + self.Y2 * self.Y2 - self.L1 * self.L1 - self.L2 * self.L2) / (2 * self.L1 * self.L2))
+        self.theta2 = math.acos((self.X2 * self.X2 + self.Z2 * self.Z2 - self.L1 * self.L1 - self.L2 * self.L2) / (2 * self.L1 * self.L2))
         return self.theta2
 
     def calcTheta1(self):
         b = self.L2 * math.sin(self.theta2)
         c = self.L1 + self.L2 * math.cos(self.theta2)
-        self.theta1 = math.atan2(self.X2, self.Y2) - math.atan2(b, c)
+        self.theta1 = math.atan2(self.X2, self.Z2) - math.atan2(b, c)
         return self.theta1
 
     def calcTheta3(self):
@@ -143,7 +150,7 @@ class leg:
         self.calcX2()
         self.calcY2()
         self.calcZ2()
-
+        
     def calcInverseKinematics(self):
         self.calcTheta2()  # Mandatory order (theta2 is used to calculate theta1)
         self.calcTheta1()
@@ -151,16 +158,16 @@ class leg:
         self.calcX1()
         self.calcY1()
         self.calcZ1()
-        self.calcZ2()  # Z mandatory to avoid NAN in calc
+        self.calcY2()  # Y mandatory to avoid NAN in calc
 
 # get coordinates of point on Bezier curve.
 # t determines how far we are on the curve. 0: Start, 1: End
-    def getBezierXY(self, t):
+    def getBezierXZ(self, t):
         return {
             'x': math.pow(1 - t, 3) * self.sx + 3 * t * math.pow(1 - t, 2) * self.c1x +
                  3 * t * t * (1 - t) * self.c2x + t * t * t * self.ex,
-            'y': math.pow(1 - t, 3) * self.sy + 3 * t * math.pow(1 - t, 2) * self.c1y +
-                 3 * t * t * (1 - t) * self.c2y + t * t * t * self.ey
+            'z': math.pow(1 - t, 3) * self.sz + 3 * t * math.pow(1 - t, 2) * self.c1z +
+                 3 * t * t * (1 - t) * self.c2z + t * t * t * self.ez
         }
                                                
     def printData(self):
@@ -175,7 +182,7 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         x = self.X2
         y = self.Y2
         z = self.Z2
-
+        
         if x < target_x:
             if (target_x - x) > self.DX:
                 dx = self.DX
@@ -212,7 +219,44 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         if dx != 0 or dy != 0 or dz != 0:
             self.setTarget(x + dx, y + dy, z + dz)
             self.calcInverseKinematics()
+            return 0
+        else:
+            # on target
+            return 1
 
+    def walk(self):
+        trigger = 0
+        SPEED_FACTOR = 3
+        match self.phase:
+            # Move up
+            case 0:
+                trigger = 1
+                if self.move_next(self.X2, 0, self.height+self.UP):
+                    self.phase += 1
+                    trigger = 2
+            # Move forward
+            case 1:
+                trigger = 3
+                if self.move_next(self.FWD_REV, 0, self.height+self.UP):
+                    self.phase += 1
+                    trigger = 4
+            # Move down
+            case 2:
+                trigger = 5
+                if self.move_next(self.FWD_REV, 0, self.height):
+                    self.phase += 1
+                    trigger = 6
+            # Move backward and get traction
+            case 3:
+                trigger = 70
+                if self.move_next(-self.FWD_REV, 0, self.height):
+                    self.phase = 0
+                    trigger = 71
+            case _:
+                print("Unexpected phase!")
+        if "FL" in self.name:
+            print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+        return trigger
 
 # Run this if standalone (test purpose)
 if __name__ == '__main__':
@@ -225,19 +269,19 @@ if __name__ == '__main__':
     FL_leg.printData()
     print("Stand-up")
     for i in range(16):
-        FL_leg.move_next(0, 16, 0)
-        RL_leg.move_next(0, 16, 0)
+        FL_leg.move_next(0, 0, -16)
+        RL_leg.move_next(0, 0, -16)
         print(FL_leg.printData())
     print("Bezier 1 FL leg")
     FL_leg.sx = FL_leg.X2
-    FL_leg.sy = FL_leg.Y2
+    FL_leg.sz = FL_leg.Z2
     RL_leg.sx = RL_leg.X2
-    RL_leg.sy = RL_leg.Y2
+    RL_leg.sz = RL_leg.Z2
     
     FL_leg.ex = FL_leg.X2-5
-    FL_leg.ey = FL_leg.Y2
+    FL_leg.ez = FL_leg.Z2
     RL_leg.ex = RL_leg.X2-5
-    RL_leg.ey = RL_leg.Y2
+    RL_leg.ez = RL_leg.Z2
     for i in range(11):
         FL_leg.setPath(i/10)
         FL_leg.calcInverseKinematics()
@@ -248,3 +292,10 @@ if __name__ == '__main__':
         RL_leg.setPath(i/10)
         RL_leg.calcInverseKinematics()
         print(RL_leg.printData())
+    print("Stand-up 20 for walk")
+    while not FL_leg.move_next(0, 0, -20):
+        print(FL_leg.printData())
+    print("Walk")
+    for i in range(35):
+        FL_leg.walk()
+        #print(FL_leg.printData())
