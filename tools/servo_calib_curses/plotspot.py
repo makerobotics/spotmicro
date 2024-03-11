@@ -41,19 +41,22 @@ class Walking_Leg:
             # Move backward and get traction
             case 3:
                 self.x -= speed
-                trigger = 70
                 trigger_distance = 2*self.FWD_REV/3
-                if self.FWD_REV-(2*trigger_distance) <= self.x <= self.FWD_REV-trigger_distance:
+                if self.FWD_REV-trigger_distance-speed/2 <= self.x <= self.FWD_REV-trigger_distance+speed/2:
                     trigger = 71
-                    print(str(self.FWD_REV-(2*trigger_distance))+" < "+str(self.x)+" < "+str(self.FWD_REV-trigger_distance))
-                elif self.x <= self.FWD_REV-(2*trigger_distance):
+                    print(f"{self.FWD_REV-trigger_distance-speed/2:2.1f} < {self.x:2.1f} < {self.FWD_REV-trigger_distance+speed/2:2.1f}")
+                elif self.FWD_REV-2*trigger_distance-speed/2 <= self.x <= self.FWD_REV-2*trigger_distance+speed/2:
                     trigger = 72
-                if self.x <= -self.FWD_REV:
+                    print(f"{self.FWD_REV-2*trigger_distance-speed/2:2.1f} < {self.x:2.1f} < {self.FWD_REV-2*trigger_distance+speed/2:2.1f}")
+                elif self.x <= -self.FWD_REV:
                     self.phase = 0
                     trigger = 73
+                else:
+                    trigger = 70
             case _:
                 print("Unexpected phase!")
-        print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.x:2.1f}, {self.y:2.1f}, {self.z:2.1f})")
+        if "RL" in self.name:
+            print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.x:2.1f}, {self.y:2.1f}, {self.z:2.1f})")
         return trigger
     
 class Walking:
@@ -183,7 +186,7 @@ if __name__ == '__main__':
     legs = []
     w = Walking(-20)
     for i in range(60):
-        w.walk(0.2)
+        w.walk(0.5)
         legs.append([(w.leg_FR.x, w.leg_FR.y, w.leg_FR.z),
                      (w.leg_FL.x, w.leg_FL.y, w.leg_FL.z),
                      (w.leg_RR.x, w.leg_RR.y, w.leg_RR.z),
