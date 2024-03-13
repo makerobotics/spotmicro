@@ -7,6 +7,7 @@ LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
 
+#todo: to be removed
 class Walking_Leg:
     def __init__(self, name, x, y, z) -> None:
         self.name = name
@@ -65,8 +66,7 @@ class Walking_Leg:
         return trigger
     
 class Walking:
-    def __init__(self, height):
-        self.height = height
+    def __init__(self):
         self.UP = 5
         self.FWD = 5
 
@@ -74,7 +74,6 @@ class Walking:
         self.leg_RL = leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
         self.leg_FR = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
         self.leg_RR = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
-
 
         self.phase = 0
 
@@ -91,9 +90,11 @@ class Walking:
                 pass
 
 class DynamicThreeDPlotter:
-    def __init__(self, legs):
+    def __init__(self, legs, knees, FRAMES):
         self.legs = legs
+        self.knees = knees
         self.counter = 0
+        self.frames = FRAMES
         # Create a 3D axis
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, projection='3d')
@@ -101,6 +102,9 @@ class DynamicThreeDPlotter:
         self.points_scatter = self.ax.scatter([], [], [], c='red', marker='o', label='Points')
         # Initialize line plot for lines
         self.lines_plot, = self.ax.plot([], [], [], c='blue', label='Lines')
+        
+        self.legplots1 = [self.ax.plot([], [], [], lw=1, c='red')[0] for _ in range(4)]
+        self.legplots2 = [self.ax.plot([], [], [], lw=1, c='green')[0] for _ in range(4)]
 
     def plot_static_frame(self):
         # Legs:                 FR           FL          RR           RL
@@ -127,35 +131,38 @@ class DynamicThreeDPlotter:
     def plot_points(self, frame):
         # Legs:                 FR           FL          RR           RL
         static_points_data = [(20, -5, 0), (20, 5, 0), (-20, -5, 0), (-20, 5, 0)]
-
+        
         new_points_data = []
         for i in range(4):
+            # calculate feet points
             new_points_data.append((static_points_data[i][0]+self.legs[self.counter][i][0],
                                  static_points_data[i][1]+self.legs[self.counter][i][1],
                                  static_points_data[i][2]+self.legs[self.counter][i][2]))
-        #print(new_points_data)
+            # calculate knee points
+            new_points_data.append((static_points_data[i][0]+self.knees[self.counter][i][0],
+                                 static_points_data[i][1]+self.knees[self.counter][i][1],
+                                 static_points_data[i][2]+self.knees[self.counter][i][2]))
+            # calculate top lines
+            x1, y1, z1 = [static_points_data[i][0], static_points_data[i][0]+self.knees[self.counter][i][0]], \
+            [static_points_data[i][1], static_points_data[i][1]+self.knees[self.counter][i][1]], \
+            [static_points_data[i][2], static_points_data[i][2]+self.knees[self.counter][i][2]] 
+            # calculate bottom lines
+            x2, y2, z2 = [static_points_data[i][0]+self.knees[self.counter][i][0], static_points_data[i][0]+self.legs[self.counter][i][0]], \
+            [static_points_data[i][1]+self.knees[self.counter][i][1], static_points_data[i][1]+self.legs[self.counter][i][1]], \
+            [static_points_data[i][2]+self.knees[self.counter][i][2], static_points_data[i][2]+self.legs[self.counter][i][2]] 
+            # Draw the legs
+            self.legplots1[i].set_data_3d(x1, y1, z1)
+            self.legplots2[i].set_data_3d(x2, y2, z2)
+            
         self.counter += 1
-        if self.counter == 30:
+        if self.counter == self.frames:
             self.counter = 0
 
         # Clear existing points
-        #self.points_scatter.remove()
-
+        self.points_scatter.remove()
         # Plot points
         x, y, z = zip(*new_points_data)
         self.points_scatter = self.ax.scatter(x, y, z, c='green', marker='o', label='Points')
-
-    def plot_lines(self, frame):
-        # Update lines data
-        new_points_data = [(x, y, z) for x, y, z in self.points_data]
-        new_lines_data = [(new_points_data[i], new_points_data[i+1]) for i in range(len(new_points_data)-1)]
-
-        # Clear existing lines
-        self.lines_plot.remove()
-
-        # Plot lines
-        x_lines, y_lines, z_lines = zip(*sum(new_lines_data, ()))
-        self.lines_plot, = self.ax.plot(x_lines, y_lines, z_lines, c='blue', label='Lines')
 
     def set_labels(self, xlabel, ylabel, zlabel):
         # Set labels
@@ -170,7 +177,6 @@ class DynamicThreeDPlotter:
     def add_legend(self):
         # Add a legend
         self.ax.legend()
-
     def show_plot(self):
         # Show the plot
         plt.show()
@@ -184,34 +190,39 @@ class DynamicThreeDPlotter:
 
     def update_plot(self, frame):
         self.plot_static_frame()
-        #self.plot_lines(frame)
         self.plot_points(frame)
         
 
 # Run this if standalone (test purpose)
 if __name__ == '__main__':
     legs = []
-    w = Walking(-20)
+    knees = []
+    FRAMES = 100
+    w = Walking()
     print("Stand-up -20 for walk")
     while not w.leg_FL.move_next(0, 0, -20):
         w.leg_RL.move_next(0, 0, -20)
         w.leg_FR.move_next(0, 0, -20)
         w.leg_RR.move_next(0, 0, -20)
-        print(w.leg_FL.printData())
+        #print(w.leg_FL.printData())
     print("Walk for n ticks")
-    for i in range(60):
+    for i in range(FRAMES):
         w.walk(0.5)
         legs.append([(w.leg_FR.X2, w.leg_FR.Y2, w.leg_FR.Z2),
                      (w.leg_FL.X2, w.leg_FL.Y2, w.leg_FL.Z2),
                      (w.leg_RR.X2, w.leg_RR.Y2, w.leg_RR.Z2),
                      (w.leg_RL.X2, w.leg_RL.Y2, w.leg_RL.Z2)])
+        knees.append([(w.leg_FR.X1, w.leg_FR.Y1, w.leg_FR.Z1),
+                     (w.leg_FL.X1, w.leg_FL.Y1, w.leg_FL.Z1),
+                     (w.leg_RR.X1, w.leg_RR.Y1, w.leg_RR.Z1),
+                     (w.leg_RL.X1, w.leg_RL.Y1, w.leg_RL.Z1)])
     
     # Create an instance of the DynamicThreeDPlotter class
-    dynamic_plotter = DynamicThreeDPlotter(legs)
+    dynamic_plotter = DynamicThreeDPlotter(legs, knees, FRAMES)
 
     # Customize the plot
     dynamic_plotter.set_labels('X-axis', 'Y-axis', 'Z-axis')
     dynamic_plotter.add_legend()
 
     # Animate the plot
-    dynamic_plotter.animate(frames=30, interval=200)
+    dynamic_plotter.animate(frames=FRAMES, interval=200)
