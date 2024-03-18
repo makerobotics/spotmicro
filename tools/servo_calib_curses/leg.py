@@ -265,11 +265,8 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
             case _:
                 print("Unexpected phase!")
         if "FL" in self.name:
-            #print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
             pass
-        #self.calcX1()
-        #self.calcY1()
-        #self.calcZ1()
+        print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
         return trigger
 
 # Run this if standalone (test purpose)
