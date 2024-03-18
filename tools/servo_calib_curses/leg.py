@@ -1,4 +1,5 @@
 import math
+import matplotlib.pyplot as plt
 
 # Not used. Only for init.
 # positions of Bezier start and end points
@@ -37,10 +38,10 @@ class leg:
         self.longPos = longPos
         self.latPos = latPos
         self.direction = 1
-#        self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
-        self.DX, self.DY, self.DZ = 1, 1, 1
+        self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
+        #self.DX, self.DY, self.DZ = 1, 1, 1
 
-        self.height = -20
+        self.height = -18
         self.UP = 5
         self.FWD_REV = 5
         self.phase = 0
@@ -74,8 +75,7 @@ class leg:
     def setTarget(self, x, y, z):
         self.X2 = x
         self.Y2 = y
-        self.Z2 = z # Calculations are based on positive values,
-        # but Z is always negative
+        self.Z2 = z 
         
     def setTargetAngles(self, theta1, theta2, theta3):
         self.theta1 = theta1
@@ -107,27 +107,27 @@ class leg:
         self.c2z = self.ez + 5 * self.direction
 
     def calcX1(self):
-        self.X1 = self.L1 * math.sin(self.theta1)
+        self.X1 = -self.L1 * math.sin(self.theta1)
         return self.X1
 
-    def calcZ1(self):
-        self.Z1 = self.L1 * math.cos(self.theta1)
-        return self.Z1
-
     def calcY1(self):
-        self.Y1 = 0
+        self.Y1 = 0 # no lateral calculation yet
         return self.Y1
+
+    def calcZ1(self):
+        self.Z1 = -self.L1 * math.cos(self.theta1)
+        return self.Z1
 
     def calcX2(self):
         self.X2 = self.L2 * math.cos(math.pi/2 - self.theta1 - self.theta2) + self.L1 * math.sin(self.theta1)
         return self.X2
 
+    def calcY2(self):
+        return self.Y2
+
     def calcZ2(self):
         self.Z2 = self.L2 * math.sin(math.pi/2 - self.theta1 - self.theta2) + self.L1 * math.cos(self.theta1)
         return self.Z2
-
-    def calcY2(self):
-        return self.Y2
 
     def calcTheta2(self):
         self.theta2 = math.acos((self.X2 * self.X2 + self.Z2 * self.Z2 - self.L1 * self.L1 - self.L2 * self.L2) / (2 * self.L1 * self.L2))
@@ -136,7 +136,14 @@ class leg:
     def calcTheta1(self):
         b = self.L2 * math.sin(self.theta2)
         c = self.L1 + self.L2 * math.cos(self.theta2)
-        self.theta1 = math.atan2(self.X2, self.Z2) - math.atan2(b, c)
+        #self.theta1 = math.atan2(self.X2, self.Z2) + math.atan2(b, c)
+        if self.Z2 == 0:
+            self.theta1 = math.pi/2
+        else:
+            self.theta1 = math.atan(self.X2/self.Z2) + math.atan2(b, c)
+        # print(f"b: {b:.2f}, c: {c:.2f}")
+        # print(f"gamma: {math.atan2(self.X2, self.Z2)*180/math.pi:.2f}, beta: {math.atan2(b, c)*180/math.pi:.2f}")
+        # print(f"Rad: {self.theta1:.2f}")
         return self.theta1
 
     def calcTheta3(self):
@@ -171,11 +178,14 @@ class leg:
         }
                                                
     def printData(self):
-        return f"theta1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
-theta2: {math.ceil(self.theta2 * 180 / math.pi):03d}°, \
-theta3: {math.ceil(self.theta3 * 180 / math.pi):03d}°, \
+        dist_high = math.dist([0, 0], [self.X1, self.Z1])
+        dist_low = math.dist([self.X1, self.Z1], [self.X2, self.Z2])
+
+        return f"t1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
+t2: {math.ceil(self.theta2 * 180 / math.pi):03d}°, \
+t3: {math.ceil(self.theta3 * 180 / math.pi):03d}°, \
 P1({math.ceil(self.X1)}, {math.ceil(self.Y1)}, {math.ceil(self.Z1)}), \
-P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
+P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_high:.2f}, {dist_low:.2f}"
         
     def move_next(self, target_x, target_y, target_z):
         x, y, z, dx, dy, dz = 0, 0, 0, 0, 0, 0
@@ -255,7 +265,11 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
             case _:
                 print("Unexpected phase!")
         if "FL" in self.name:
-            print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+            #print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+            pass
+        #self.calcX1()
+        #self.calcY1()
+        #self.calcZ1()
         return trigger
 
 # Run this if standalone (test purpose)
@@ -266,36 +280,79 @@ if __name__ == '__main__':
     #FR_leg = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
     #RR_leg = leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
-    FL_leg.printData()
-    print("Stand-up")
-    for i in range(16):
-        FL_leg.move_next(0, 0, -16)
-        RL_leg.move_next(0, 0, -16)
-        print(FL_leg.printData())
-    print("Bezier 1 FL leg")
-    FL_leg.sx = FL_leg.X2
-    FL_leg.sz = FL_leg.Z2
-    RL_leg.sx = RL_leg.X2
-    RL_leg.sz = RL_leg.Z2
-    
-    FL_leg.ex = FL_leg.X2-5
-    FL_leg.ez = FL_leg.Z2
-    RL_leg.ex = RL_leg.X2-5
-    RL_leg.ez = RL_leg.Z2
-    for i in range(11):
-        FL_leg.setPath(i/10)
-        FL_leg.calcInverseKinematics()
-        print(FL_leg.printData())
-    print("Reverse RL leg")
-    RL_leg.reversePath()
-    for i in reversed(range(11)):
-        RL_leg.setPath(i/10)
-        RL_leg.calcInverseKinematics()
-        print(RL_leg.printData())
-    print("Stand-up 20 for walk")
-    while not FL_leg.move_next(0, 0, -20):
-        print(FL_leg.printData())
-    print("Walk")
-    for i in range(35):
-        FL_leg.walk()
-        #print(FL_leg.printData())
+    FL_leg.setSpeeds(1, 1, 1)
+    RL_leg.setSpeeds(1, 1, 1)
+
+    FL_leg.setTarget(0, 0, 0)
+    FL_leg.calcInverseKinematics()
+    print(FL_leg.printData())
+    if 1:
+        print("Stand-up for walk")
+        i=0
+        plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
+        while not FL_leg.move_next(0, 0, -16):
+            print(FL_leg.printData())
+            X1, Z1 = [0, FL_leg.X1], [0, FL_leg.Z1]
+            X2, Z2 = [FL_leg.X1, FL_leg.X2], [FL_leg.Z1, FL_leg.Z2]
+            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted')
+        plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
+        while not FL_leg.move_next(5, 0, -16):
+            print(FL_leg.printData())
+            X1, Z1 = [0, FL_leg.X1], [0, FL_leg.Z1]
+            X2, Z2 = [FL_leg.X1, FL_leg.X2], [FL_leg.Z1, FL_leg.Z2]
+            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted')
+        plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
+        while not FL_leg.move_next(5, 0, -20):
+            print(FL_leg.printData())
+            X1, Z1 = [0, FL_leg.X1], [0, FL_leg.Z1]
+            X2, Z2 = [FL_leg.X1, FL_leg.X2], [FL_leg.Z1, FL_leg.Z2]
+            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted')
+        plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
+        while not FL_leg.move_next(-5, 0, -20):
+            print(FL_leg.printData())
+            X1, Z1 = [0, FL_leg.X1], [0, FL_leg.Z1]
+            X2, Z2 = [FL_leg.X1, FL_leg.X2], [FL_leg.Z1, FL_leg.Z2]
+            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted')
+        plt.xlabel("x")
+        plt.ylabel("z")
+        plt.xlim([-40, 40])
+        plt.ylim([-40, 40])
+        plt.grid(True)
+        plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
+        plt.show()
+    if 0:
+        print("Stand-up FL and RL")
+        while not FL_leg.move_next(0, 0, -16):
+            RL_leg.move_next(0, 0, -16)
+            print(FL_leg.printData())
+    if 0:
+        print("Bezier 1 FL leg")
+        FL_leg.sx = FL_leg.X2
+        FL_leg.sz = FL_leg.Z2
+        RL_leg.sx = RL_leg.X2
+        RL_leg.sz = RL_leg.Z2
+        
+        FL_leg.ex = FL_leg.X2-5
+        FL_leg.ez = FL_leg.Z2
+        RL_leg.ex = RL_leg.X2-5
+        RL_leg.ez = RL_leg.Z2
+        for i in range(11):
+            FL_leg.setPath(i/10)
+            FL_leg.calcInverseKinematics()
+            print(FL_leg.printData())
+    if 0:
+        print("Reverse RL leg")
+        RL_leg.reversePath()
+        for i in reversed(range(11)):
+            RL_leg.setPath(i/10)
+            RL_leg.calcInverseKinematics()
+            print(RL_leg.printData())
+    if 0:
+        print("Stand-up for walk")
+        while not FL_leg.move_next(0, 0, -18):
+            print(FL_leg.printData())
+    if 0:
+        print("Walk")
+        for i in range(35):
+            FL_leg.walk()
+            print(FL_leg.printData())
