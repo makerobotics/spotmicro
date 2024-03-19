@@ -45,6 +45,7 @@ class leg:
         self.UP = 5
         self.FWD_REV = 5
         self.phase = 0
+        self.tick = 0
 
         # recalculate bezier curve
         self.sx = SX # x coordinate of bezier start point
@@ -234,13 +235,13 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
             # on target
             return 1
 
-    def walk(self):
+    def walk(self, speed):
         trigger = 0
-        SPEED_FACTOR = 3
         match self.phase:
             # Move up
             case 0:
                 trigger = 1
+                self.setSpeeds(speed*6, speed*6, speed*6)
                 if self.move_next(self.X2, 0, self.height+self.UP):
                     self.phase += 1
                     trigger = 2
@@ -259,6 +260,7 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
             # Move backward and get traction
             case 3:
                 trigger = 70
+                self.setSpeeds(speed, speed, speed)
                 if self.move_next(-self.FWD_REV, 0, self.height):
                     self.phase = 0
                     trigger = 71
@@ -266,7 +268,8 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
                 print("Unexpected phase!")
         if "FL" in self.name:
             pass
-        print(f"Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+            print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+        self.tick += 1
         return trigger
 
 # Run this if standalone (test purpose)
@@ -291,7 +294,7 @@ if __name__ == '__main__':
             print(FL_leg.printData())
             X1, Z1 = [0, FL_leg.X1], [0, FL_leg.Z1]
             X2, Z2 = [FL_leg.X1, FL_leg.X2], [FL_leg.Z1, FL_leg.Z2]
-            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted')
+            plt.plot(X1, Z1, X2, Z2, marker = '.', linestyle='dotted', alpha=0.3)
         plt.plot(-LEG_LENGTH*math.sin(FL_leg.theta1), -LEG_LENGTH*math.cos(FL_leg.theta1), '-ro')
         while not FL_leg.move_next(5, 0, -16):
             print(FL_leg.printData())

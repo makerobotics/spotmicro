@@ -77,18 +77,26 @@ class Walking:
 
         self.phase = 0
 
-    def walk(self, speed):
+    def gait(self, speed):
         match self.phase:
             case 0:
-                if self.leg_RL.walk() == 6: # Transition to phase 3 (touch ground)
+                if self.leg_RL.walk(speed) == 6: # Transition to phase 3 (touch ground)
                     self.phase += 1
             case 1:
-                self.leg_FL.walk()
-                self.leg_RL.walk()
-                return
+                self.leg_RL.walk(speed)
+                if self.leg_FL.walk(speed) == 6:
+                    self.phase += 1
+            case 2:
+                self.leg_FL.walk(speed)
+                self.leg_RL.walk(speed)
+                if self.leg_RR.walk(speed) == 6:
+                    self.phase += 1
             case _:
-                pass
-
+                self.leg_FL.walk(speed)
+                self.leg_RL.walk(speed)
+                self.leg_RR.walk(speed)
+                self.leg_FR.walk(speed)
+                
 class DynamicThreeDPlotter:
     def __init__(self, legs, knees, FRAMES):
         self.legs = legs
@@ -197,7 +205,8 @@ class DynamicThreeDPlotter:
 if __name__ == '__main__':
     legs = []
     knees = []
-    FRAMES = 100
+    parameters = []
+    FRAMES = 1000
     w = Walking()
     print("Stand-up -20 for walk")
     while not w.leg_FL.move_next(0, 0, -20):
@@ -207,7 +216,7 @@ if __name__ == '__main__':
         #print(w.leg_FL.printData())
     print("Walk for n ticks")
     for i in range(FRAMES):
-        w.walk(0.5)
+        w.gait(0.5)
         legs.append([(w.leg_FR.X2, w.leg_FR.Y2, w.leg_FR.Z2),
                      (w.leg_FL.X2, w.leg_FL.Y2, w.leg_FL.Z2),
                      (w.leg_RR.X2, w.leg_RR.Y2, w.leg_RR.Z2),
@@ -216,13 +225,34 @@ if __name__ == '__main__':
                      (w.leg_FL.X1, w.leg_FL.Y1, w.leg_FL.Z1),
                      (w.leg_RR.X1, w.leg_RR.Y1, w.leg_RR.Z1),
                      (w.leg_RL.X1, w.leg_RL.Y1, w.leg_RL.Z1)])
-    
-    # Create an instance of the DynamicThreeDPlotter class
-    dynamic_plotter = DynamicThreeDPlotter(legs, knees, FRAMES)
+        #parameters.append((w.leg_FL.X1, w.leg_FL.X2, w.leg_FL.Z1, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
+        #parameters.append((w.leg_FL.X2, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
+        parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2))
 
-    # Customize the plot
-    dynamic_plotter.set_labels('X-axis', 'Y-axis', 'Z-axis')
-    dynamic_plotter.add_legend()
+    # 3D dynamic view
+    if 0:
+        # Create an instance of the DynamicThreeDPlotter class
+        dynamic_plotter = DynamicThreeDPlotter(legs, knees, FRAMES)
 
-    # Animate the plot
-    dynamic_plotter.animate(frames=FRAMES, interval=200)
+        # Customize the plot
+        dynamic_plotter.set_labels('X-axis', 'Y-axis', 'Z-axis')
+        dynamic_plotter.add_legend()
+
+        # Animate the plot
+        dynamic_plotter.animate(frames=FRAMES, interval=20)
+
+    # 2D charts
+    if 1:
+        #plt.plot(parameters, ',-', label=['X1', 'X2', 'Z1', 'Z2', 'theta1', 'theta2'])
+        #plt.plot(parameters, ',-', label=['X2', 'Z2', 'theta1', 'theta2'])
+        plt.plot(parameters, ',-', label=['X2(FL)', 'X2(FR)', 'X2(RL)', 'X2(RR)'])
+        plt.legend()
+        plt.xlabel("t")
+        plt.ylabel("parameter")
+        plt.grid(True)
+        
+        # fig, axes = plt.subplots(2)
+        # axes[0].plot(parameters)
+        # axes[1].plot(parameters)
+
+        plt.show()
