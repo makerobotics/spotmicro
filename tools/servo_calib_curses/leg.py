@@ -45,6 +45,7 @@ class leg:
         self.UP = 5
         self.FWD_REV = 5
         self.phase = 0
+        self.trigger = 0
         self.tick = 0
 
         # recalculate bezier curve
@@ -236,41 +237,42 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
             return 1
 
     def walk(self, speed):
-        trigger = 0
+        self.trigger = 0
+        SPEED_FACTOR = 12
         match self.phase:
             # Move up
             case 0:
-                trigger = 1
-                self.setSpeeds(speed*6, speed*6, speed*6)
+                self.trigger = 1
+                self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
                 if self.move_next(self.X2, 0, self.height+self.UP):
                     self.phase += 1
-                    trigger = 2
+                    self.trigger = 2
             # Move forward
             case 1:
-                trigger = 3
+                self.trigger = 3
                 if self.move_next(self.FWD_REV, 0, self.height+self.UP):
                     self.phase += 1
-                    trigger = 4
+                    self.trigger = 4
             # Move down
             case 2:
-                trigger = 5
+                self.trigger = 5
                 if self.move_next(self.FWD_REV, 0, self.height):
                     self.phase += 1
-                    trigger = 6
+                    self.trigger = 6
             # Move backward and get traction
             case 3:
-                trigger = 70
+                self.trigger = 7
                 self.setSpeeds(speed, speed, speed)
                 if self.move_next(-self.FWD_REV, 0, self.height):
                     self.phase = 0
-                    trigger = 71
+                    self.trigger = 8
             case _:
                 print("Unexpected phase!")
         if "FL" in self.name:
             pass
-            print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+            print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{self.trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
         self.tick += 1
-        return trigger
+        return self.trigger
 
 # Run this if standalone (test purpose)
 if __name__ == '__main__':

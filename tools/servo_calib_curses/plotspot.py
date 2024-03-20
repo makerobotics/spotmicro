@@ -206,7 +206,7 @@ if __name__ == '__main__':
     legs = []
     knees = []
     parameters = []
-    FRAMES = 1000
+    FRAMES = 100
     w = Walking()
     print("Stand-up -20 for walk")
     while not w.leg_FL.move_next(0, 0, -20):
@@ -227,7 +227,9 @@ if __name__ == '__main__':
                      (w.leg_RL.X1, w.leg_RL.Y1, w.leg_RL.Z1)])
         #parameters.append((w.leg_FL.X1, w.leg_FL.X2, w.leg_FL.Z1, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
         #parameters.append((w.leg_FL.X2, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
-        parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2))
+        #parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2))
+        #parameters.append((w.leg_RL.X2, w.leg_FL.X2, w.leg_RL.Z2, w.leg_FL.Z2))
+        parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2, w.leg_FL.trigger, w.leg_FR.trigger, w.leg_RL.trigger, w.leg_RR.trigger))
 
     # 3D dynamic view
     if 0:
@@ -245,7 +247,8 @@ if __name__ == '__main__':
     if 1:
         #plt.plot(parameters, ',-', label=['X1', 'X2', 'Z1', 'Z2', 'theta1', 'theta2'])
         #plt.plot(parameters, ',-', label=['X2', 'Z2', 'theta1', 'theta2'])
-        plt.plot(parameters, ',-', label=['X2(FL)', 'X2(FR)', 'X2(RL)', 'X2(RR)'])
+        plt.plot(parameters, ',-', drawstyle='steps', label=['X2(FL)', 'X2(FR)', 'X2(RL)', 'X2(RR)', 'T(FL)', 'T(FR)', 'T(RL)', 'T(RR)'])
+        #plt.plot(parameters, ',-', label=['X2(RL)', 'X2(FL)', 'Z2(RL)', 'Z2(FL)'])
         plt.legend()
         plt.xlabel("t")
         plt.ylabel("parameter")
