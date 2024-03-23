@@ -80,22 +80,19 @@ class Walking:
     def prepare_for_gait(self, speed):
         match self.phase:
             case 0:
-                if self.leg_RL.prepare_leg_position(speed, -5) == 3:
+                if self.leg_RL.prepare_leg_position(speed, -self.FWD):
                     self.phase += 1
-                    print("end of RL")
             case 1:
-                if self.leg_FL.prepare_leg_position(speed, -2) == 3:
+                if self.leg_FL.prepare_leg_position(speed, -self.FWD/4):
                     self.phase += 1
-                    print("end of FL")
             case 2:
-                if self.leg_FR.prepare_leg_position(speed, 2) == 3:
+                if self.leg_FR.prepare_leg_position(speed, self.FWD/4):
                     self.phase += 1
-                    print("end of FR")
             case 3:
-                if self.leg_RR.prepare_leg_position(speed, 5) == 3:
+                if self.leg_RR.prepare_leg_position(speed, self.FWD):
                     self.phase += 1
-                    print("end of RR")
-        return self.phase
+
+        return (self.phase>3)
 
     def gait(self, speed):
         self.leg_FL.walk(speed)
@@ -228,7 +225,7 @@ if __name__ == '__main__':
     for i in range(FRAMES):
         match phase:
             case 0:
-                if w.prepare_for_gait(1.0)>=4:
+                if w.prepare_for_gait(1.0):
                     phase += 1
                     print("Preparation completed")
             case 1:
@@ -254,8 +251,8 @@ if __name__ == '__main__':
         #parameters.append((w.leg_FL.X1, w.leg_FL.X2, w.leg_FL.Z1, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
         #parameters.append((w.leg_FL.X2, w.leg_FL.Z2, w.leg_FL.theta1, w.leg_FL.theta2))
         #parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2))
-        #parameters.append((w.leg_RL.X2, w.leg_FL.X2, w.leg_RL.Z2, w.leg_FL.Z2))
-        parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2, w.leg_FL.trigger, w.leg_FR.trigger, w.leg_RL.trigger, w.leg_RR.trigger))
+        parameters.append((w.leg_RL.X2, w.leg_FL.X2, w.leg_RL.Z2, w.leg_FL.Z2))
+        #parameters.append((w.leg_FL.X2, w.leg_FR.X2, w.leg_RL.X2, w.leg_RR.X2, w.leg_FL.trigger, w.leg_FR.trigger, w.leg_RL.trigger, w.leg_RR.trigger))
 
     # 3D dynamic view
     if 1:
@@ -273,8 +270,8 @@ if __name__ == '__main__':
     if 0:
         #plt.plot(parameters, ',-', label=['X1', 'X2', 'Z1', 'Z2', 'theta1', 'theta2'])
         #plt.plot(parameters, ',-', label=['X2', 'Z2', 'theta1', 'theta2'])
-        plt.plot(parameters, ',-', drawstyle='steps', label=['X2(FL)', 'X2(FR)', 'X2(RL)', 'X2(RR)', 'T(FL)', 'T(FR)', 'T(RL)', 'T(RR)'])
-        #plt.plot(parameters, ',-', label=['X2(RL)', 'X2(FL)', 'Z2(RL)', 'Z2(FL)'])
+        #plt.plot(parameters, ',-', drawstyle='steps', label=['X2(FL)', 'X2(FR)', 'X2(RL)', 'X2(RR)', 'T(FL)', 'T(FR)', 'T(RL)', 'T(RR)'])
+        plt.plot(parameters, ',-', drawstyle='steps', label=['X2(RL)', 'X2(FL)', 'Z2(RL)', 'Z2(FL)'])
         plt.legend()
         plt.xlabel("t")
         plt.ylabel("parameter")

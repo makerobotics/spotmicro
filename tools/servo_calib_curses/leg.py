@@ -255,7 +255,7 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
                     self.setSpeeds(speed, speed, speed)
                     self.phase += 1
                     self.initial_step = 1
-        return self.phase
+        return self.phase>2
 
     def walk(self, speed):
         self.trigger = 0
