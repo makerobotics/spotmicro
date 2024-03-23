@@ -40,8 +40,9 @@ class leg:
         self.direction = 1
         self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
         #self.DX, self.DY, self.DZ = 1, 1, 1
+        self.initial_step = 1
 
-        self.height = -18
+        self.height = -20
         self.UP = 5
         self.FWD_REV = 5
         self.phase = 0
@@ -183,11 +184,11 @@ class leg:
         dist_high = math.dist([0, 0], [self.X1, self.Z1])
         dist_low = math.dist([self.X1, self.Z1], [self.X2, self.Z2])
 
-        return f"t1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
+        return f"{self.name} - t1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
 t2: {math.ceil(self.theta2 * 180 / math.pi):03d}°, \
 t3: {math.ceil(self.theta3 * 180 / math.pi):03d}°, \
 P1({math.ceil(self.X1)}, {math.ceil(self.Y1)}, {math.ceil(self.Z1)}), \
-P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_high:.2f}, {dist_low:.2f}"
+P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         
     def move_next(self, target_x, target_y, target_z):
         x, y, z, dx, dy, dz = 0, 0, 0, 0, 0, 0
@@ -236,9 +237,37 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
             # on target
             return 1
 
+    def prepare_leg_position(self, speed, x_position):
+        SPEED_FACTOR = 12
+        match self.phase:
+            # Move up
+            case 0:
+                self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
+                if self.move_next(self.X2, 0, self.height+self.UP):
+                    self.phase += 1
+            # Move to position
+            case 1:
+                if self.move_next(x_position, 0, self.height+self.UP):
+                    self.phase += 1
+            # Move down
+            case 2:
+                if self.move_next(x_position, 0, self.height):
+                    self.setSpeeds(speed, speed, speed)
+                    self.phase += 1
+                    self.initial_step = 1
+        return self.phase
+
     def walk(self, speed):
         self.trigger = 0
         SPEED_FACTOR = 12
+        # starting the gait. Leg has to be started in right phase
+        if self.initial_step:
+            self.initial_step = 0
+            if self.X2 == -5:
+                self.phase = 0
+            else:
+                self.phase = 3
+        # Gait state machine for one leg
         match self.phase:
             # Move up
             case 0:
@@ -268,9 +297,9 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)}) - D: {dist_
                     self.trigger = 8
             case _:
                 print("Unexpected phase!")
-        if "FL" in self.name:
+        if "FL" in self.name or "RL" in self.name:
             pass
-            print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{self.trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
+        #print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{self.trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")
         self.tick += 1
         return self.trigger
 
