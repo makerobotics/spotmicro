@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 1 # for PC simulation
+ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -14,10 +14,12 @@ LEG_LENGTH = 20
 LONG_LEG_DISTANCE = 40
 LAT_LEG_DISTANCE = 10
 DX = 1; DY = 1; DZ = 1
+UP = 5
+FWD = 5
 DEBUG = 0
 
 if DEBUG:
-    g_file = open("debugdata.log", "a")
+    g_file = open("debugdata.log", "w")
 
 g_FL_leg = leg.leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
 g_RL_leg = leg.leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
@@ -25,12 +27,10 @@ g_FR_leg = leg.leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -
 g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
 # Sample servo values and target positions
-#servo_values = [400] * 12
-#target_positions = [350] * 12
-g_servo_values = [455, 370, 395,
-                  395, 315, 370,
-                  370, 360, 490,
-                  325, 370, 500] # Initial positions (stand up)
+#g_servo_values = [455, 370, 395,
+#                  395, 315, 370,
+#                  370, 360, 490,
+#                  325, 370, 500] # Initial positions (stand up)
 g_servo_values = [205, 645, 410,
                   130, 590, 365,
                   620, 100, 485,
@@ -45,13 +45,15 @@ g_target_positions = g_servo_values.copy()
 for i in range(0,len(g_target_positions)):
     g_target_positions[i] += 1
 g_selected_channels = []  # List to store selected channels
-g_message = "---"
+g_message_1 = "---"
+g_message_2 = "---"
 # Functions variables
 g_function_text = "Empty"
 g_selected_function = 0
 g_dir = 1
 g_step = 0
-g_sequence = 1
+g_sequence = 0
+g_phase = 0
 g_fps = 0
 g_lastTick = time.time()
 g_initTime = g_lastTick
@@ -62,14 +64,27 @@ if ADAFRUIT:
     pwm.set_pwm_freq(60)
 
 # Read channel ranges from a YAML file
-with open('channel_ranges.yaml', 'r') as file:
+#with open('channel_ranges.yaml', 'r') as file:
+with open('/home/yann/Documents/spotmicro/tools/servo_calib_curses/channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
+# Name: debug
+# Parameter: 
+#    text: text to be logged
+# Description: function is used to log debeg date in a text file as print is not possible during curses session
+# Output: ---
 def debug(text):
     if DEBUG:
         t = time.time()-g_initTime
         g_file.write(f"{t:.3f} - "+text+"\n")
 
+# Name: bound
+# Parameter: 
+#    low: low limit for bound
+#    high: high limit for bound
+#    value: value to be bounded
+# Description: Bound a value between a low and a high limit
+# Output: ---
 def bound(low, high, value):
     return max(low, min(high, value))
 
@@ -154,23 +169,39 @@ def edit_target_angle(stdscr, current_channel):
         stdscr.nodelay(True)
 
 def handle_x_key(stdscr, current_channel):
-    global g_message, g_selected_channels
+    global g_message_1, g_selected_channels
 
     if current_channel in g_selected_channels:
-        g_message = "Stopped servo "+str(current_channel)
+        g_message_1 = "Stopped servo "+str(current_channel)
         if ADAFRUIT:
             pwm.set_pwm(current_channel, 0, 4096)
     else:
-        g_message = "Servo is not active."
+        g_message_1 = "Servo is not active."
 
 def display_main_frame(stdscr):
     stdscr.addstr(0, 0, "Servo calibration", curses.A_BOLD)
 
-def display_message(stdscr):
-    global g_message
+# Name: display_message_1
+# Parameter: 
+#    stdscr: curses handle
+# Description: Display message on higher status line
+# Output: ---
+def display_message_1(stdscr):
+    global g_message_1
 
     stdscr.addstr(curses.LINES-2, 0, " "*80)
-    stdscr.addstr(curses.LINES-2, 0, g_message)
+    stdscr.addstr(curses.LINES-2, 0, g_message_1)
+
+# Name: display_message_2
+# Parameter: 
+#    stdscr: curses handle
+# Description: Display message on lower status line
+# Output: ---
+def display_message_2(stdscr):
+    global g_message_2
+
+    stdscr.addstr(curses.LINES-1, 0, " "*80)
+    stdscr.addstr(curses.LINES-1, 0, g_message_2)
 
 def display_servo_values(stdscr, current_channel):
     Y_START = 2
@@ -229,7 +260,7 @@ def closeServos(stdscr):
     time.sleep(0.1)
 
 def control_servos(stdscr, current_channel):
-    global g_servo_values, g_message
+    global g_servo_values, g_message_1
 
     for i, (value, target, channel_info) in enumerate(zip(g_servo_values, g_target_positions, g_channel_data)):
         min_range, max_range = channel_info['range']
@@ -268,67 +299,81 @@ def move_bezier():
         g_RR_leg.reversePath()
 
 def stand_up(height):
-    global g_message
+    global g_message_1, g_message_2
 
-    #g_FL_leg.setSpeeds(5, 5, 5)
-    g_FL_leg.move_next(0, height, 0)
-    g_FR_leg.move_next(0, height, 0)
-    g_RL_leg.move_next(0, height, 0)
-    g_RR_leg.move_next(0, height, 0)
-    g_message = g_FL_leg.printData()
-    #debug("FL * "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", y:"+str(g_FL_leg.Y2))
-    #debug("FR * "+g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", y:"+str(g_FR_leg.Y2))
+    fl = g_FL_leg.move_next(0, 0, height)
+    fr = g_FR_leg.move_next(0, 0, height)
+    rl = g_RL_leg.move_next(0, 0, height)
+    rr = g_RR_leg.move_next(0, 0, height)
+    if fl and fr and rl and rr:
+        g_message_2 = "Standing up completed."
+    else:
+        #g_FL_leg.setSpeeds(5, 5, 5)
+        g_message_1 = g_FL_leg.printData()
+        #debug("SU "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", z:"+str(g_FL_leg.Z2))
+        #debug(g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", z:"+str(g_FR_leg.Z2))
 
 def sit_down():
-    global g_message
+    global g_message_1, g_message_2
 
     #g_FL_leg.setSpeeds(1, 1, 1)
-    g_FL_leg.move_next(0, 0, 0)
-    g_FR_leg.move_next(0, 0, 0)
-    g_RL_leg.move_next(0, 0, 0)
-    g_RR_leg.move_next(0, 0, 0)
-    g_message = g_FL_leg.printData()
+    fl = g_FL_leg.move_next(0, 0, 0)
+    fr = g_FR_leg.move_next(0, 0, 0)
+    rl = g_RL_leg.move_next(0, 0, 0)
+    rr = g_RR_leg.move_next(0, 0, 0)
+    if fl and fr and rl and rr:
+        g_message_2 = "Sitting completed."
+    else:
+        g_message_1 = g_FL_leg.printData()
 
-def walk(x, y, z, fwd, up):
-    global g_sequence, g_message
+def prepare_for_gait(speed):
+    global g_phase, g_message_1, g_message_2
+    match g_phase:
+        case 0:
+            if g_RL_leg.prepare_leg_position(speed, -FWD):
+                g_phase += 1
+        case 1:
+            if g_FL_leg.prepare_leg_position(speed, -FWD/4):
+                g_phase += 1
+        case 2:
+            if g_FR_leg.prepare_leg_position(speed, FWD/4):
+                g_phase += 1
+        case 3:
+            if g_RR_leg.prepare_leg_position(speed, FWD):
+                g_phase += 1
+                g_message_2 = "Gait preparation completed"
+    g_message_1 = g_FL_leg.printData()
+    #debug("PG - "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", z:"+str(g_FL_leg.Z2) +" - "+str(g_phase))
+    #debug(g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", z:"+str(g_FR_leg.Z2))
+
+    return (g_phase>3)
+
+def gait(speed):
+    global g_message_1
+    g_FL_leg.walk(speed)
+    g_RL_leg.walk(speed)
+    g_RR_leg.walk(speed)
+    g_FR_leg.walk(speed)
+    g_message_1 = g_FL_leg.printData()
+
+def walk():
+    global g_sequence, g_message_1, g_message_2
 
     # Initial stand up
-    if g_sequence == 0:
-        g_FL_leg.move_next(x, y, z)
-        #g_FR_leg.move_next(x, y, z)
-        #g_RL_leg.move_next(x, y, z)
-        #g_RR_leg.move_next(x, y, z)
-        if(g_FL_leg.Y2 == y):
-            g_sequence +=1
-    elif g_sequence == 1:
-        g_FL_leg.move_next(x, y-up, z)
-        #g_FR_leg.move_next(x, y, z)
-        #g_RL_leg.move_next(x, y, z)
-        #g_RR_leg.move_next(x, y, z)
-        if(g_FL_leg.Y2 == y-up):
-            g_sequence +=1
-    elif g_sequence == 2:
-        g_FL_leg.move_next(x+fwd, y-up, z)
-        #g_FR_leg.move_next(x, y-up, z)
-        #g_RL_leg.move_next(x, y-up, z)
-        #g_RR_leg.move_next(x, y-up, z)
-        if(g_FL_leg.X2 == x+fwd):
-            g_sequence +=1
-    elif g_sequence == 3:
-        g_FL_leg.move_next(x+fwd, y, z)
-        #g_FR_leg.move_next(x+fwd, y-up, z)
-        #g_RL_leg.move_next(x+fwd, y-up, z)
-        #g_RR_leg.move_next(x+fwd, y-up, z)
-        if(g_FL_leg.Y2 == y):
-            g_sequence +=1
-    elif g_sequence == 4:
-        g_FL_leg.move_next(x, y, z)
-        #g_FR_leg.move_next(x+fwd, y, z)
-        #g_RL_leg.move_next(x+fwd, y, z)
-        #g_RR_leg.move_next(x+fwd, y, z)
-        if(g_FL_leg.X2 == x):
-            g_sequence = 1
-    g_message = g_FL_leg.printData()+" -- Step "+str(g_sequence)
+    match g_sequence:
+        case 0:
+            if prepare_for_gait(0.5):
+                g_sequence += 1
+                g_message_2 = "Preparation completed"
+        case 1:
+            g_FL_leg.phase = 0
+            g_FR_leg.phase = 0
+            g_RL_leg.phase = 0
+            g_RR_leg.phase = 0
+            g_sequence += 1
+        case 2:
+            gait(0.5)
+    g_message_1 = f"FL({g_FL_leg.X2:.1f}, {g_FL_leg.Z2:.1f}), FR({g_FR_leg.X2:.1f}, {g_FR_leg.Z2:.1f})"
 
 def convert_angle_to_pwm():
     global g_target_positions
@@ -356,13 +401,13 @@ def convert_angle_to_pwm():
 
 def function_positions(stdscr):
     if g_selected_function == 1:
-        stand_up(22)
+        stand_up(-22)
     elif g_selected_function == 2:
         sit_down()
     elif g_selected_function == 3:
         move_bezier()
     elif g_selected_function == 4:
-        walk(0, 22, 0, 8, 5)
+        walk()
     else:
         return
     convert_angle_to_pwm()
@@ -379,7 +424,7 @@ def calcFPS(stdscr):
     g_lastTick = time.time()
 
 def main(stdscr):
-    global g_selected_function, g_message
+    global g_selected_function, g_message_1
     global g_FL_leg, g_RL_leg, g_FR_leg, g_RR_leg
     global g_hold_display
 
@@ -393,12 +438,9 @@ def main(stdscr):
         control_servos(stdscr, current_channel)
         display_help(stdscr)
         display_main_frame(stdscr)
-        #if g_hold_display == 0:
-        if 1:
-#            display_main_frame(stdscr)
-            display_servo_values(stdscr, current_channel)
-#            display_help(stdscr)
-            display_message(stdscr)
+        display_servo_values(stdscr, current_channel)
+        display_message_1(stdscr)
+        display_message_2(stdscr)
         calcFPS(stdscr)
         try:
             key = stdscr.getch()
@@ -435,16 +477,16 @@ def main(stdscr):
             g_hold_display = not g_hold_display
         elif key == ord('0'):
             g_selected_function = 0
-            g_message = "Functions off"
+            g_message_1 = "Functions off"
         elif key == ord('1'):
             g_selected_function = 1
-            g_message = "Stand up active"
+            g_message_1 = "Stand up active"
         elif key == ord('2'):
             g_selected_function = 2
-            g_message = "Sit down active"
+            g_message_1 = "Sit down active"
         elif key == ord('3'):
             g_selected_function = 3
-            g_message = "Bezier active"
+            g_message_1 = "Bezier active"
             g_FL_leg.sx = g_FL_leg.X2
             g_FL_leg.sy = g_FL_leg.Y2
             g_RL_leg.sx = g_RL_leg.X2
@@ -464,10 +506,10 @@ def main(stdscr):
             g_RR_leg.ey = g_RR_leg.Y2
         elif key == ord('4'):
             g_selected_function = 4
-            g_message = "Walk active"
+            g_message_1 = "Walk active"
         # Master delay to control speed
-        time.sleep(0.001)
-        #time.sleep(0.1)
+        #time.sleep(0.001)
+        time.sleep(0.1)
         #time.sleep(1.0)
         stdscr.refresh()
     closeServos(stdscr)

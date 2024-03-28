@@ -60,10 +60,15 @@ class leg:
         self.c2z = self.ez + 5 * self.direction # y coordinate of bezier control point 2
 
         if DEBUG:
-            self.f = open("debugdata.log", "a")
+            self.f = open(name+"_debugdata.log", "w")
+
+    def __del__(self):
+        if DEBUG:
+            self.f.close()
 
     def debug(self, text):
-        if "FL" in self.name and DEBUG:
+        #if "FL" in self.name and DEBUG:
+        if DEBUG:
             self.f.write(self.name+" - "+text+"\n")
 
     def setTheta1(self, angle):
@@ -181,9 +186,6 @@ class leg:
         }
                                                
     def printData(self):
-        dist_high = math.dist([0, 0], [self.X1, self.Z1])
-        dist_low = math.dist([self.X1, self.Z1], [self.X2, self.Z2])
-
         return f"{self.name} - t1: {math.ceil(self.theta1 * 180 / math.pi):03d}°, \
 t2: {math.ceil(self.theta2 * 180 / math.pi):03d}°, \
 t3: {math.ceil(self.theta3 * 180 / math.pi):03d}°, \
@@ -232,6 +234,7 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
         if dx != 0 or dy != 0 or dz != 0:
             self.setTarget(x + dx, y + dy, z + dz)
             self.calcInverseKinematics()
+            self.debug(self.printData())
             return 0
         else:
             # on target
