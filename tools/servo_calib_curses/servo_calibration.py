@@ -50,10 +50,10 @@ g_message_2 = "---"
 # Functions variables
 g_function_text = "Empty"
 g_selected_function = 0
-g_dir = 1
-g_step = 0
-g_sequence = 0
-g_phase = 0
+g_bezier_dir = 1
+g_bezier_step = 0
+g_walking_sequence = 0
+g_gait_phase = 0
 g_fps = 0
 g_lastTick = time.time()
 g_initTime = g_lastTick
@@ -279,20 +279,20 @@ def control_servos(stdscr, current_channel):
 #                    stdscr.refresh()
 
 def move_bezier():
-    global g_dir, g_step
+    global g_bezier_dir, g_bezier_step
 
-    g_FL_leg.setPath(g_step/10)
+    g_FL_leg.setPath(g_bezier_step/10)
     g_FL_leg.calcInverseKinematics()
-    g_FR_leg.setPath(g_step/10)
+    g_FR_leg.setPath(g_bezier_step/10)
     g_FR_leg.calcInverseKinematics()
-    g_RL_leg.setPath(g_step/10)
+    g_RL_leg.setPath(g_bezier_step/10)
     g_RL_leg.calcInverseKinematics()
-    g_RR_leg.setPath(g_step/10)
+    g_RR_leg.setPath(g_bezier_step/10)
     g_RR_leg.calcInverseKinematics()
 
-    g_step += g_dir
-    if g_step == 10 or g_step == 0:
-        g_dir = -g_dir
+    g_bezier_step += g_bezier_dir
+    if g_bezier_step == 10 or g_bezier_step == 0:
+        g_bezier_dir = -g_bezier_dir
         g_FL_leg.reversePath()
         g_FR_leg.reversePath()
         g_RL_leg.reversePath()
@@ -327,26 +327,26 @@ def sit_down():
         g_message_1 = g_FL_leg.printData()
 
 def prepare_for_gait(speed):
-    global g_phase, g_message_1, g_message_2
-    match g_phase:
+    global g_gait_phase, g_message_1, g_message_2
+    match g_gait_phase:
         case 0:
             if g_RL_leg.prepare_leg_position(speed, -FWD):
-                g_phase += 1
+                g_gait_phase += 1
         case 1:
             if g_FL_leg.prepare_leg_position(speed, -FWD/4):
-                g_phase += 1
+                g_gait_phase += 1
         case 2:
             if g_FR_leg.prepare_leg_position(speed, FWD/4):
-                g_phase += 1
+                g_gait_phase += 1
         case 3:
             if g_RR_leg.prepare_leg_position(speed, FWD):
-                g_phase += 1
+                g_gait_phase += 1
                 g_message_2 = "Gait preparation completed"
     g_message_1 = g_FL_leg.printData()
     #debug("PG - "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", z:"+str(g_FL_leg.Z2) +" - "+str(g_phase))
     #debug(g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", z:"+str(g_FR_leg.Z2))
 
-    return (g_phase>3)
+    return (g_gait_phase>3)
 
 def gait(speed):
     global g_message_1
@@ -357,20 +357,20 @@ def gait(speed):
     g_message_1 = g_FL_leg.printData()
 
 def walk():
-    global g_sequence, g_message_1, g_message_2
+    global g_walking_sequence, g_message_1, g_message_2
 
     # Initial stand up
-    match g_sequence:
+    match g_walking_sequence:
         case 0:
             if prepare_for_gait(0.5):
-                g_sequence += 1
+                g_walking_sequence += 1
                 g_message_2 = "Preparation completed"
         case 1:
             g_FL_leg.phase = 0
             g_FR_leg.phase = 0
             g_RL_leg.phase = 0
             g_RR_leg.phase = 0
-            g_sequence += 1
+            g_walking_sequence += 1
         case 2:
             gait(0.5)
     g_message_1 = f"FL({g_FL_leg.X2:.1f}, {g_FL_leg.Z2:.1f}), FR({g_FR_leg.X2:.1f}, {g_FR_leg.Z2:.1f})"
