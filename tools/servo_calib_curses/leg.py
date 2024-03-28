@@ -144,7 +144,6 @@ class leg:
     def calcTheta1(self):
         b = self.L2 * math.sin(self.theta2)
         c = self.L1 + self.L2 * math.cos(self.theta2)
-        #self.theta1 = math.atan2(self.X2, self.Z2) + math.atan2(b, c)
         if self.Z2 == 0:
             self.theta1 = math.pi/2
         else:
