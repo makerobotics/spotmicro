@@ -241,22 +241,21 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
 
     def prepare_leg_position(self, speed, x_position):
         SPEED_FACTOR = 12
-        match self.phase:
-            # Move up
-            case 0:
-                self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
-                if self.move_next(self.X2, 0, self.height+self.UP):
-                    self.phase += 1
-            # Move to position
-            case 1:
-                if self.move_next(x_position, 0, self.height+self.UP):
-                    self.phase += 1
-            # Move down
-            case 2:
-                if self.move_next(x_position, 0, self.height):
-                    self.setSpeeds(speed, speed, speed)
-                    self.phase += 1
-                    self.initial_step = 1
+        # Move up
+        if self.phase == 0:
+            self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
+            if self.move_next(self.X2, 0, self.height+self.UP):
+                self.phase += 1
+        # Move to position
+        elif self.phase == 1:
+            if self.move_next(x_position, 0, self.height+self.UP):
+                self.phase += 1
+        # Move down
+        elif self.phase == 2:
+            if self.move_next(x_position, 0, self.height):
+                self.setSpeeds(speed, speed, speed)
+                self.phase += 1
+                self.initial_step = 1
         return self.phase>2
 
     def walk(self, speed):
@@ -270,35 +269,33 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
             else:
                 self.phase = 3
         # Gait state machine for one leg
-        match self.phase:
+        if self.phase == 0:
             # Move up
-            case 0:
-                self.trigger = 1
-                self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
-                if self.move_next(self.X2, 0, self.height+self.UP):
-                    self.phase += 1
-                    self.trigger = 2
-            # Move forward
-            case 1:
-                self.trigger = 3
-                if self.move_next(self.FWD_REV, 0, self.height+self.UP):
-                    self.phase += 1
-                    self.trigger = 4
-            # Move down
-            case 2:
-                self.trigger = 5
-                if self.move_next(self.FWD_REV, 0, self.height):
-                    self.phase += 1
-                    self.trigger = 6
-            # Move backward and get traction
-            case 3:
-                self.trigger = 7
-                self.setSpeeds(speed, speed, speed)
-                if self.move_next(-self.FWD_REV, 0, self.height):
-                    self.phase = 0
-                    self.trigger = 8
-            case _:
-                print("Unexpected phase!")
+            self.trigger = 1
+            self.setSpeeds(speed*SPEED_FACTOR, speed*SPEED_FACTOR, speed*SPEED_FACTOR)
+            if self.move_next(self.X2, 0, self.height+self.UP):
+                self.phase += 1
+                self.trigger = 2
+        # Move forward
+        elif self.phase == 1:
+            self.trigger = 3
+            if self.move_next(self.FWD_REV, 0, self.height+self.UP):
+                self.phase += 1
+                self.trigger = 4
+        # Move down
+        elif self.phase == 2:
+            self.trigger = 5
+            if self.move_next(self.FWD_REV, 0, self.height):
+                self.phase += 1
+                self.trigger = 6
+        # Move backward and get traction
+        elif self.phase == 3:
+            self.trigger = 7
+            self.setSpeeds(speed, speed, speed)
+            if self.move_next(-self.FWD_REV, 0, self.height):
+                self.phase = 0
+                self.trigger = 8
+
         if "FL" in self.name or "RL" in self.name:
             pass
         #print(f"t: {self.tick:d} - Leg {self.name} in phase {self.phase:d},{self.trigger:d} at ({self.X2:2.1f}, {self.Y2:2.1f}, {self.Z2:2.1f})")

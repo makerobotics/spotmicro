@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -327,20 +327,19 @@ def sit_down():
 
 def prepare_for_gait(speed):
     global g_gait_phase, g_message_1, g_message_2
-    match g_gait_phase:
-        case 0:
-            if g_RL_leg.prepare_leg_position(speed, -FWD):
-                g_gait_phase += 1
-        case 1:
-            if g_FL_leg.prepare_leg_position(speed, -FWD/4):
-                g_gait_phase += 1
-        case 2:
-            if g_FR_leg.prepare_leg_position(speed, FWD/4):
-                g_gait_phase += 1
-        case 3:
-            if g_RR_leg.prepare_leg_position(speed, FWD):
-                g_gait_phase += 1
-                g_message_2 = "Gait preparation completed"
+    if g_gait_phase == 0:
+        if g_RL_leg.prepare_leg_position(speed, -FWD):
+            g_gait_phase += 1
+    elif g_gait_phase == 1:
+        if g_FL_leg.prepare_leg_position(speed, -FWD/4):
+            g_gait_phase += 1
+    elif g_gait_phase == 2:
+        if g_FR_leg.prepare_leg_position(speed, FWD/4):
+            g_gait_phase += 1
+    elif g_gait_phase == 3:
+        if g_RR_leg.prepare_leg_position(speed, FWD):
+            g_gait_phase += 1
+            g_message_2 = "Gait preparation completed"
     g_message_1 = g_FL_leg.printData()
     #debug("PG - "+g_FL_leg.printData() + " -- x:"+str(g_FL_leg.X2) + ", z:"+str(g_FL_leg.Z2) +" - "+str(g_phase))
     #debug(g_FR_leg.printData() + " -- x:"+str(g_FR_leg.X2) + ", z:"+str(g_FR_leg.Z2))
@@ -359,19 +358,18 @@ def walk():
     global g_walking_sequence, g_message_1, g_message_2
 
     # Initial stand up
-    match g_walking_sequence:
-        case 0:
-            if prepare_for_gait(0.5):
-                g_walking_sequence += 1
-                g_message_2 = "Preparation completed"
-        case 1:
-            g_FL_leg.phase = 0
-            g_FR_leg.phase = 0
-            g_RL_leg.phase = 0
-            g_RR_leg.phase = 0
+    if g_walking_sequence == 0:
+        if prepare_for_gait(0.5):
             g_walking_sequence += 1
-        case 2:
-            gait(0.5)
+            g_message_2 = "Preparation completed"
+    elif g_walking_sequence == 1:
+        g_FL_leg.phase = 0
+        g_FR_leg.phase = 0
+        g_RL_leg.phase = 0
+        g_RR_leg.phase = 0
+        g_walking_sequence += 1
+    elif g_walking_sequence == 2:
+        gait(0.5)
     g_message_1 = f"FL({g_FL_leg.X2:.1f}, {g_FL_leg.Z2:.1f}), FR({g_FR_leg.X2:.1f}, {g_FR_leg.Z2:.1f})"
 
 def convert_angle_to_pwm():
