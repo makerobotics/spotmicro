@@ -21,20 +21,21 @@ DEBUG = 0
 if DEBUG:
     g_file = open("debugdata.log", "w")
 
-g_FL_leg = leg.leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
-g_RL_leg = leg.leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
-g_FR_leg = leg.leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
-g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+# Initialize in sitting position
+g_FL_leg = leg.leg("FL", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+g_RL_leg = leg.leg("RL", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
+g_FR_leg = leg.leg("FR", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
+g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, -LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
 
 # Sample servo values and target positions
 #g_servo_values = [455, 370, 395,
 #                  395, 315, 370,
 #                  370, 360, 490,
 #                  325, 370, 500] # Initial positions (stand up)
-g_servo_values = [205, 645, 410,
-                  130, 590, 365,
-                  620, 100, 485,
-                  590, 100, 510] # Initial positions (sit down)
+g_servo_values = [205, 100, 410,
+                  100, 100, 365,
+                  650, 650, 485,
+                  650, 650, 525] # Initial positions (sit down)
 #g_servo_values = [272, 600, 405,
 #                  173, 573, 365,
 #                  546, 145, 480,
