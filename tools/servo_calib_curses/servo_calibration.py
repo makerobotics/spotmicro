@@ -32,10 +32,10 @@ g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, -LONG_LE
 #                  395, 315, 370,
 #                  370, 360, 490,
 #                  325, 370, 500] # Initial positions (stand up)
-g_servo_values = [205, 100, 410,
-                  100, 100, 365,
-                  650, 650, 485,
-                  650, 650, 525] # Initial positions (sit down)
+g_servo_values = [200, 630, 410,
+                  120, 325, 365,
+                  615, 100, 485,
+                  585, 100, 510] # Initial positions (sit down)
 #g_servo_values = [272, 600, 405,
 #                  173, 573, 365,
 #                  546, 145, 480,

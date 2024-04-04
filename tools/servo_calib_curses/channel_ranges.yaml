@@ -1,14 +1,14 @@
 - alias: CH01 - FL.knee
-  range: [200, 650]
+  range: [201, 650]
   angles: [180, 0]
 - alias: CH02 - FL.shoulder
-  range: [100, 650]
-  angles: [90, -90]
+  range: [100, 630]
+  angles: [-90, 90]
 - alias: CH03 - FL.hip
   range: [170, 650]
   angles: [90, -90]
 - alias: CH04 - RL.knee
-  range: [100, 650]
+  range: [121, 650]
   angles: [180, 0]
 - alias: CH05 - RL.shoulder
   range: [100, 600]
@@ -17,21 +17,21 @@
   range: [100, 630]
   angles: [90, -90]
 - alias: CH07 - FR.knee
-  range: [100, 650]
+  range: [100, 616]
   angles: [0, 180]
 - alias: CH08 - FR.shoulder
-  range: [100, 650]
-  angles: [-90, 90]
+  range: [101, 650]
+  angles: [90, -90]
 - alias: CH09 - FR.hip
   range: [200, 770]
   angles: [-90, 90]
 - alias: CH10 - RR.knee
-  range: [100, 650]
+  range: [100, 585]
   angles: [0, 180]
 - alias: CH11 - RR.shoulder
-  range: [100, 650]
-  angles: [-90, 90]
+  range: [101, 650]
+  angles: [90, -90]
 - alias: CH12 - RR.hip
-  range: [200, 850]
+  range: [200, 825]
   angles: [-90, 90]
 
