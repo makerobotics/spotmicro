@@ -1,37 +1,49 @@
 - alias: CH01 - FL.knee
-  range: [201, 650]
+  range: [201, 700]
   angles: [180, 0]
+  limits: [201, 650]
 - alias: CH02 - FL.shoulder
-  range: [100, 630]
+  range: [115, 625]
   angles: [-90, 90]
+  limits: [100, 625]
 - alias: CH03 - FL.hip
-  range: [170, 650]
+  range: [155, 650]
   angles: [90, -90]
+  limits: [170, 650]
 - alias: CH04 - RL.knee
   range: [121, 650]
   angles: [180, 0]
+  limits: [121, 650]
 - alias: CH05 - RL.shoulder
-  range: [100, 600]
-  angles: [90, -90]
+  range: [100, 325]
+  angles: [20, 90] # wrong servo mounted (only 90 deg)
+  limits: [100, 320]
 - alias: CH06 - RL.hip
-  range: [100, 630]
+  range: [100, 660]
   angles: [90, -90]
+  limits: [100, 630]
 - alias: CH07 - FR.knee
-  range: [100, 616]
+  range: [106, 616]
   angles: [0, 180]
+  limits: [100, 616]
 - alias: CH08 - FR.shoulder
   range: [101, 650]
   angles: [90, -90]
+  limits: [101, 650]
 - alias: CH09 - FR.hip
   range: [200, 770]
   angles: [-90, 90]
+  limits: [200, 770]
 - alias: CH10 - RR.knee
-  range: [100, 585]
+  range: [95, 585]
   angles: [0, 180]
+  limits: [100, 585]
 - alias: CH11 - RR.shoulder
-  range: [101, 650]
+  range: [101, 600]
   angles: [90, -90]
+  limits: [101, 650]
 - alias: CH12 - RR.hip
-  range: [200, 825]
+  range: [200, 800]
   angles: [-90, 90]
+  limits: [200, 825]
 
