@@ -1,5 +1,4 @@
 import math
-import matplotlib.pyplot as plt
 
 # Not used. Only for init.
 # positions of Bezier start and end points
@@ -304,7 +303,9 @@ P2({math.ceil(self.X2)}, {math.ceil(self.Y2)}, {math.ceil(self.Z2)})"
 
 # Run this if standalone (test purpose)
 if __name__ == '__main__':
-    
+
+    import matplotlib.pyplot as plt
+
     FL_leg = leg("FL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
     RL_leg = leg("RL", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, -LONG_LEG_DISTANCE/2, LAT_LEG_DISTANCE/2)
     #FR_leg = leg("FR", LEG_LENGTH, LEG_LENGTH, 0, 0, 0, LONG_LEG_DISTANCE/2, -LAT_LEG_DISTANCE/2)
