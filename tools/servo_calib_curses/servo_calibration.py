@@ -32,10 +32,10 @@ g_RR_leg = leg.leg("RR", LEG_LENGTH, LEG_LENGTH, math.pi/2, math.pi, 0, -LONG_LE
 #                  395, 315, 370,
 #                  370, 360, 490,
 #                  325, 370, 500] # Initial positions (stand up)
-g_servo_values = [200, 630, 410,
-                  120, 325, 365,
-                  615, 100, 485,
-                  585, 100, 510] # Initial positions (sit down)
+g_servo_values = [200, 625, 400,
+                  120, 325, 380,
+                  615, 100, 490,
+                  585, 100, 500] # Initial positions (sit down)
 #g_servo_values = [272, 600, 405,
 #                  173, 573, 365,
 #                  546, 145, 480,
@@ -91,7 +91,8 @@ def bound(low, high, value):
 def AngleToPWM(angle, min_pwm, max_pwm, min_angle, max_angle):
     factor = (max_pwm-min_pwm)/(max_angle-min_angle)
     offset = min_pwm - factor*min_angle
-    pwm = bound(min(min_pwm, max_pwm), max(min_pwm,max_pwm), int(offset + factor * angle))
+    #pwm = bound(min(min_pwm, max_pwm), max(min_pwm,max_pwm), int(offset + factor * angle))
+    pwm = int(offset + factor * angle)
     return pwm
 
 def PWMtoAngle(pwm, min_pwm, max_pwm, min_pwm_angle, max_pwm_angle):
@@ -106,7 +107,7 @@ def toggle_channel_selection(current_channel):
         g_selected_channels.append(current_channel)
 
 def moveChannelTarget(stdscr, current_channel, direction):
-    min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
+    min_pwm_limit, max_pwm_limit = g_channel_data[current_channel]['limits']
     if "R" in direction:
         message = "Move servo right"
         g_target_positions[current_channel] += 5
@@ -114,12 +115,10 @@ def moveChannelTarget(stdscr, current_channel, direction):
         message = "Move servo left"
         g_target_positions[current_channel] -= 5
     # Bound pwm
-    if g_target_positions[current_channel]>max_pwm_range:
-        g_target_positions[current_channel] = max_pwm_range
-    elif g_target_positions[current_channel]<min_pwm_range:
-        g_target_positions[current_channel] = min_pwm_range
-    #stdscr.addstr(curses.LINES-2, 0, message)
-    #stdscr.refresh()
+    if g_target_positions[current_channel]>max_pwm_limit:
+        g_target_positions[current_channel] = max_pwm_limit
+    elif g_target_positions[current_channel]<min_pwm_limit:
+        g_target_positions[current_channel] = min_pwm_limit
 
 def edit_channel_target(stdscr, current_channel):
     stdscr.addstr(3 + current_channel, 0, " " * 80)
@@ -134,8 +133,8 @@ def edit_channel_target(stdscr, current_channel):
     try:
         new_target = int(new_target_str)
         # Limit target position within the specified range
-        min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
-        g_target_positions[current_channel] = max(min(new_target, max_pwm_range), min_pwm_range)
+        min_pwm_limit, max_pwm_limit = g_channel_data[current_channel]['limits']
+        g_target_positions[current_channel] = max(min(new_target, max_pwm_limit), min_pwm_limit)
     except ValueError:
         stdscr.addstr(3 + current_channel, 0, "Invalid input. Target position must be an integer.")
         stdscr.refresh()
@@ -156,11 +155,13 @@ def edit_target_angle(stdscr, current_channel):
 
     try:
         new_target = int(new_target_str)
-        # Limit target position within the specified range
+        # Calculate target position from the specified range
         min_pwm_range, max_pwm_range = g_channel_data[current_channel]['range']
         min_pwm_angle, max_pwm_angle = g_channel_data[current_channel]['angles']
-#        target_positions[current_channel] = max(min(AngleToPWM(new_target, min_range, max_range, min_angle, max_angle), max_range), min_range)
-        g_target_positions[current_channel] = AngleToPWM(new_target, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+        new_target = AngleToPWM(new_target, min_pwm_range, max_pwm_range, min_pwm_angle, max_pwm_angle)
+        # Limit target position within the specified range
+        min_pwm_limit, max_pwm_limit = g_channel_data[current_channel]['limits']
+        g_target_positions[current_channel] = max(min(new_target, max_pwm_limit), min_pwm_limit)
     except ValueError:
         stdscr.addstr(3 + current_channel, 0, "Invalid input. Target angle must be an integer.")
         stdscr.refresh()
@@ -274,9 +275,6 @@ def control_servos(stdscr, current_channel):
                 if ADAFRUIT:
                     pwm.set_pwm(i, 0, nextvalue)
                 g_servo_values[i] = nextvalue
-#                if g_hold_display == 0:
-#                    display_servo_values(stdscr, current_channel)
-#                    stdscr.refresh()
 
 def move_bezier():
     global g_bezier_dir, g_bezier_step
@@ -307,6 +305,7 @@ def stand_up(height):
     rr = g_RR_leg.move_next(0, 0, height)
     if fl and fr and rl and rr:
         g_message_2 = "Standing up completed."
+        g_selected_function = 0 # reset function as completed
     else:
         #g_FL_leg.setSpeeds(5, 5, 5)
         g_message_1 = g_FL_leg.printData()
@@ -323,6 +322,7 @@ def sit_down():
     rr = g_RR_leg.move_next(0, 0, 0)
     if fl and fr and rl and rr:
         g_message_2 = "Sitting completed."
+        g_selected_function = 0 # reset function as completed
     else:
         g_message_1 = g_FL_leg.printData()
 
