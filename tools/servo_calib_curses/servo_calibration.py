@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 1 # for PC simulation
+ADAFRUIT = 0 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -65,7 +65,7 @@ if ADAFRUIT:
     pwm.set_pwm_freq(60)
 
 # Read channel ranges from a YAML file
-with open('channel_ranges.yaml', 'r') as file:
+with open('/home/yann/Documents/spotmicro/tools/servo_calib_curses/channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
 # Name: debug
@@ -91,7 +91,6 @@ def bound(low, high, value):
 def AngleToPWM(angle, min_pwm, max_pwm, min_angle, max_angle):
     factor = (max_pwm-min_pwm)/(max_angle-min_angle)
     offset = min_pwm - factor*min_angle
-    #pwm = bound(min(min_pwm, max_pwm), max(min_pwm,max_pwm), int(offset + factor * angle))
     pwm = int(offset + factor * angle)
     return pwm
 
@@ -360,7 +359,7 @@ def walk():
 
     # Initial stand up
     if g_walking_sequence == 0:
-        if prepare_for_gait(0.5):
+        if prepare_for_gait(0.1):
             g_walking_sequence += 1
             g_message_2 = "Preparation completed"
     elif g_walking_sequence == 1:
@@ -370,7 +369,7 @@ def walk():
         g_RR_leg.phase = 0
         g_walking_sequence += 1
     elif g_walking_sequence == 2:
-        gait(0.5)
+        gait(0.01)
     g_message_1 = f"FL({g_FL_leg.X2:.1f}, {g_FL_leg.Z2:.1f}), FR({g_FR_leg.X2:.1f}, {g_FR_leg.Z2:.1f})"
 
 def convert_angle_to_pwm():
@@ -507,7 +506,7 @@ def main(stdscr):
             g_message_1 = "Walk active"
         # Master delay to control speed
         #time.sleep(0.001)
-        time.sleep(0.1)
+        time.sleep(0.01)
         #time.sleep(1.0)
         stdscr.refresh()
     closeServos(stdscr)

@@ -37,11 +37,12 @@ class leg:
         self.longPos = longPos
         self.latPos = latPos
         self.direction = 1
-        self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
+        self.DX, self.DY, self.DZ = 0.1, 0.1, 0.1
+        #self.DX, self.DY, self.DZ = 0.5, 0.5, 0.5
         #self.DX, self.DY, self.DZ = 1, 1, 1
         self.initial_step = 1
 
-        self.height = -20
+        self.height = -22
         self.UP = 5
         self.FWD_REV = 5
         self.phase = 0
