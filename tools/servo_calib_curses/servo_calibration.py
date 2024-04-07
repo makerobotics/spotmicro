@@ -3,7 +3,7 @@ from curses.textpad import rectangle
 import time
 import math
 import yaml
-ADAFRUIT = 0 # for PC simulation
+ADAFRUIT = 1 # for PC simulation
 if ADAFRUIT:
     import Adafruit_PCA9685
 import leg
@@ -65,7 +65,7 @@ if ADAFRUIT:
     pwm.set_pwm_freq(60)
 
 # Read channel ranges from a YAML file
-with open('/home/yann/Documents/spotmicro/tools/servo_calib_curses/channel_ranges.yaml', 'r') as file:
+with open('channel_ranges.yaml', 'r') as file:
     g_channel_data = yaml.safe_load(file)
 
 # Name: debug
